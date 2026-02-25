@@ -8,7 +8,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Můj vlastní discord bot pro mě a přátele\r #\u0000 \u0000d\u0000i\u0000s\u0000c\u0000o\u0000r\u0000d\u0000b\u0000o\u0000t\u0000-\u0000r\u0000o\u0000c\u0000k\u0000e\u0000t\u0000\r\u0000 \u0000",
   "dependencies": {
     "@discordjs/voice": "^0.19.0",
     "discord.js": "^14.25.1",

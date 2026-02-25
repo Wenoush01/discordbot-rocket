@@ -6,7 +6,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 
-client.once("ready", () => {
+client.once("clientReady", () => {
   console.log(`${client.user.tag} is ready!`);
 });
 
