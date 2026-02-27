@@ -1,0 +1,37 @@
+const { getOrCreateConnection } = require("../voice/connectionManager");
+const { resolveTrack } = require("../../utils/resolveTrack");
+const { startPlaybackIfIdle } = require("../../music/playerManager");
+const { enqueue } = require("../../music/queueStore");
+
+module.exports = {
+  name: "play",
+  description: "Přehrává hudbu z YouTube. Použijte: !play <YouTube URL/Query>",
+  async execute(client, message, args) {
+    const input = args?.join(" ")?.trim();
+    if (!input) {
+      await message.reply(
+        "Musíte zadat URL videa z YouTube nebo zadejte název videa!",
+      );
+      return;
+    }
+
+    try {
+      const { connection } = getOrCreateConnection({
+        guild: message.guild,
+        voiceChannel: message.member?.voice?.channel,
+      });
+
+      const track = await resolveTrack(input);
+      console.log(
+        `[PLAY] Přidávám do fronty ve guildě ${message.guild.id}:`,
+        track,
+      );
+
+      await message.reply(`Přidáno do fronty: **${track.title}**`);
+      enqueue(message.guild.id, track);
+      await startPlaybackIfIdle(message.guild.id, connection);
+    } catch (error) {
+      console.error(`[PLAY] Chyba při přehrávání: ${error.message}`, error);
+    }
+  },
+};

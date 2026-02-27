@@ -1,0 +1,1 @@
+//TODO: Refactorovat playerManager.js třídu na jednotlivý modulární funkce: stopPlayback, pausePlayback, resumePlayback, skipPlayback, ... a ty pak importovat do playerManager.js, kde budou použity v rámci třídy PlayerManager. Tím se zlepší čitelnost a údržba kódu.

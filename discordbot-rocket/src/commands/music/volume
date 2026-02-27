@@ -1,0 +1,35 @@
+/*
+
+
+const {
+  getPlaybackSettings,
+  setVolume,
+} = require("../../music/playbackSettingsStore");
+const { applyVolumeToCurrent } = require("../../music/playerManager");
+
+module.exports = {
+  name: "volume",
+  description: "Zmení hlasitost přehrávače. Použítí: !volume <0-100>",
+  async execute(client, message, args) {
+    if (!message.guild) return;
+    const guildId = message.guild.id;
+
+    if (!args?.[0]) {
+      const settings = getPlaybackSettings(guildId);
+      message.reply(
+        `Aktuální hlasitost je ${Math.round((settings.volume ?? 1.0) * 100)}%`,
+      );
+      return;
+    }
+
+    const percent = Number(args[0]);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      await message.reply("Neplatná hlasitost. Zadej číslo mezi 0 a 200.");
+      return;
+    }
+
+    setVolume(guildId, percent / 100);
+    applyVolumeToCurrent(guildId);
+    await message.reply(`Hlasitost nastavena na ${percent}%.`);
+  },
+};
