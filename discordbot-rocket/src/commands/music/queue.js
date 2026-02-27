@@ -1,5 +1,6 @@
 const { getQueue } = require("../../music/queueStore");
 const { formatQueueEmbed } = require("../../presenters/formatQueueEmbed");
+const { replySilent } = require("../../utils/replySilent");
 
 module.exports = {
   name: "queue",
@@ -10,6 +11,6 @@ module.exports = {
     const queue = getQueue(message.guild.id);
     const embed = formatQueueEmbed(queue, { limit: 10 });
 
-    await message.reply({ embeds: [embed] });
+    await replySilent(message, { embeds: [embed] });
   },
 };

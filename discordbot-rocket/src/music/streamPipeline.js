@@ -4,6 +4,18 @@ const { spawn } = require("node:child_process");
 const ytdl = require("youtube-dl-exec");
 const ffmpegPath = require("ffmpeg-static");
 
+function isExpectedAbort(err, cleaned) {
+  if (!err) return false;
+  if (!cleaned) return false;
+  const msg = String(err?.message ?? err);
+  return (
+    err?.code === "EPIPE" ||
+    err?.code === "ERR_STREAM_PREMATURE_CLOSE" ||
+    msg.includes("SIGKILL") ||
+    msg.includes("Premature close")
+  );
+}
+
 async function createStreamPipeline(url) {
   try {
     const s = await play.stream(url);
@@ -17,7 +29,7 @@ async function createStreamPipeline(url) {
         noWarnings: true,
         noCheckCertificates: true,
       },
-      { stdio: ["ignore", "pipe", "pipe"] },
+      { stdio: ["ignore", "pipe", "pipe"] }
     );
 
     const ffmpeg = spawn(
@@ -36,17 +48,51 @@ async function createStreamPipeline(url) {
         "2",
         "pipe:1",
       ],
-      { stdio: ["pipe", "pipe", "pipe"] },
+      { stdio: ["pipe", "pipe", "pipe"] }
     );
+
+    let cleaned = false;
+
+    const onErr = (err) => {
+      if (isExpectedAbort(err, cleaned)) return;
+      console.error("[PIPELINE] Stream pipeline error:", err);
+    };
+
+    ytdlp.stdout.on("error", onErr);
+    ffmpeg.stdin.on("error", onErr);
+    ffmpeg.stdout.on("error", onErr);
+    ffmpeg.on("error", onErr);
+    ytdlp.on("error", onErr);
+
+    if (typeof ytdlp.catch === "function") {
+      ytdlp.catch((err) => {
+        if (isExpectedAbort(err, cleaned)) return;
+        console.error("[PIPELINE] yt-dlp process error:", err);
+      });
+    }
 
     ytdlp.stdout.pipe(ffmpeg.stdin);
 
     const cleanup = () => {
-      if (!ytdlp.killed) ytdlp.kill();
-      if (!ffmpeg.killed) ffmpeg.kill();
+      if (cleaned) return;
+      cleaned = true;
+
+      try {
+        ytdlp.stdout.unpipe(ffmpeg.stdin);
+      } catch {}
+      try {
+        ffmpeg.stdin.destroy();
+      } catch {}
+
+      if (!ytdlp.killed) ytdlp.kill("SIGKILL");
+      if (!ffmpeg.killed) ffmpeg.kill("SIGKILL");
     };
 
-    return { stream: ffmpeg.stdout, inputType: StreamType.Raw, cleanup };
+    return {
+      stream: ffmpeg.stdout,
+      inputType: StreamType.Raw,
+      cleanup,
+    };
   }
 }
 

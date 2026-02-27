@@ -44,13 +44,27 @@ module.exports = function setupProcessHandlers(client) {
     }
   });
 
-  process.on("uncaughtException", (err) =>
-    gracefulShutdown("uncaughtException", err),
-  );
-  process.on("unhandledRejection", (reason) =>
-    gracefulShutdown(
-      "unhandledRejection",
-      reason instanceof Error ? reason : new Error(String(reason)),
-    ),
-  );
+  process.on("uncaughtException", (error) => {
+    if (error?.code === "EPIPE") {
+      // NOVÉ
+      console.warn("[WARN] Ignored uncaught EPIPE"); // NOVÉ
+      return; // NOVÉ
+    }
+
+    console.error("[SHUTDOWN] Důvod: uncaughtException");
+    console.error("[SHUTDOWN] Chyba:", error);
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (error) => {
+    const msg = String(error?.message ?? error);
+
+    if (error?.code === "ERR_STREAM_PREMATURE_CLOSE" || msg.includes("SIGKILL")) {
+      console.warn("[WARN] Ignored expected stream shutdown rejection");
+      return;
+    }
+
+    console.error("[SHUTDOWN] Důvod: unhandledRejection");
+    console.error("[SHUTDOWN] Chyba:", error);
+    process.exit(1);
+  });
 };

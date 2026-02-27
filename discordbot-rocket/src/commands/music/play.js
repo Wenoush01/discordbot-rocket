@@ -1,6 +1,8 @@
 const { getOrCreateConnection } = require("../voice/connectionManager");
 const { resolveTrack } = require("../../utils/resolveTrack");
-const { startPlaybackIfIdle } = require("../../music/playerManager");
+const {
+  startPlaybackIfIdle,
+} = require("../../music/playerManager/playbackService");
 const { enqueue } = require("../../music/queueStore");
 const { replySilent } = require("../../utils/replySilent");
 
