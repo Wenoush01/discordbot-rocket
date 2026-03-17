@@ -1,66 +1,83 @@
-﻿# discordbot-rocket
+﻿# RocketBot Workspace
 
-Můj vlastní Discord bot pro mě a přátele.
+Monorepo se dvěma větvemi vývoje Discord bota:
 
-## Rewrite checklist (MVP)
+- discordbot-rocket: aktuálně spustitelná verze (Node.js, prefix příkazy)
+- discordbot-rocket-v3: nová architektura ve výstavbě (backend/frontend skeleton)
 
-### 1) Runtime a start
-- Node.js: `>= 22.12.0`
-- NPM scripts:
-  - `start`: `node src/index.js`
-  - `dev`: `nodemon src/index.js`
-- `.env` musí obsahovat `DISCORD_TOKEN`
+## Obsah repozitáře
 
-### 2) Core bota
-- Inicializovat `discord.js` client s intents pro message + voice
-- Načítat commandy rekurzivně ze `src/commands/**`
-- Načítat eventy nerekurzivně ze `src/events/*`
-- Prefix parser: `!`
+- README.md: tento přehled
+- .instructions.md: projektové instrukce pro AI asistenta
+- discordbot-rocket: běžící implementace
+- discordbot-rocket-v3: připravovaná verze
 
-### 3) Hudba (`!play`, `!stop`)
-- `!play <url|query>`
-  - URL: validace + `video_info`
-  - Query: `search(limit: 1)` + převod na finální YouTube URL
-  - Jednotný track objekt: `{ title, url, thumbnail }`
-- `!stop`
-  - zastavit player
-  - vyčistit frontu
-  - ukončit fallback stream proces
+## Rychlý start (discordbot-rocket)
 
-### 4) Fronta a player
-- Fronta per guild (`Map`)
-- Při `Idle`:
-  - odebrat aktuální track
-  - pokud je další, přehrát ho
-- Připojení do voice + `connection.subscribe(player)`
+Požadavky:
 
-### 5) Stream pipeline
-- Primárně `play-dl`
-- Fallback: `youtube-dl-exec` (`yt-dlp`) přes `stdout`
-- `ffmpeg-static` pro zpracování audio streamu v `@discordjs/voice`
+- Node.js 18+
+- npm
 
-### 6) Error handling
-- Guardy na `url` před streamem
-- `try/catch` kolem resolve a přehrávání
-- `connection.on("error")` a `player.on("error")`
+Postup:
 
-## Ověřený seznam dependencies
+1. Otevři složku discordbot-rocket
+2. Nainstaluj závislosti: npm install
+3. Vytvoř .env soubor se secretem DISCORD_TOKEN
+4. Spusť vývoj: npm run dev
+5. Spusť produkčně: npm start
 
-### Core
-- `discord.js`
-- `@discordjs/voice`
-- `dotenv`
+Definice skriptů je v souboru discordbot-rocket/package.json.
 
-### Music
-- `play-dl`
-- `youtube-dl-exec`
-- `ffmpeg-static`
+## Jak bot funguje (aktuální verze)
 
-### Voice encryption
-- `@noble/ciphers`
-- `libsodium-wrappers`
-- `@snazzah/davey`
+Vstup aplikace:
 
-## Poznámka k voice šifrování
+- [index.js](http://_vscodecontentref_/0)
 
-Pro přehrávání ve voice kanálu je šifrování nutné (není to volitelná funkce). Tyto crypto balíčky musí být dostupné, jinak voice spojení nebude fungovat.
+Načítání commandů:
+
+- [loadCommands.js](http://_vscodecontentref_/1)
+
+Zpracování zpráv:
+
+- [messageCreate.js](http://_vscodecontentref_/2)
+
+Aktuálně:
+
+- používá se prefix !
+- příkazy se načítají rekurzivně ze složky discordbot-rocket/src/commands
+
+## Struktura projektu
+
+Aktuální bot:
+
+- discordbot-rocket/src/application
+- discordbot-rocket/src/bootstrap
+- discordbot-rocket/src/commands
+- discordbot-rocket/src/events
+- discordbot-rocket/src/music
+- discordbot-rocket/src/infra
+
+V3 skeleton:
+
+- discordbot-rocket-v3/src/backend
+- discordbot-rocket-v3/src/frontend
+- discordbot-rocket-v3/config
+
+## Konvence a AI instrukce
+
+Projektové konvence (pojmenování, modularita, DI, workflow) jsou v:
+
+- [.instructions.md](http://_vscodecontentref_/3)
+
+Doporučení:
+
+- držet názvy tříd v PascalCase
+- commandy/eventy psát v camelCase
+- logiku držet v services/module vrstvě, ne v command handleru
+
+## Stav vývoje
+
+- discordbot-rocket: funkční základ pro Discord bot příkazy
+- discordbot-rocket-v3: připravená adresářová architektura, zatím bez [package.json](http://_vscodecontentref_/4) a bez runtime bootstrapu
