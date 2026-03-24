@@ -1,76 +1,55 @@
-import {
-  joinVoiceChannel,
-  VoiceConnectionStatus,
-  entersState,
-} from "@discordjs/voice";
-
 class VoiceConnectionService {
-  constructor({ logger }) {
+  constructor({ logger, kazagumoService }) {
     this.logger = logger;
-    // One entry per guild { connection, channelId, queue, nowPlaying, tasks }
-    // queue / nowPlaying /tasks are placeholders for future music features
-
+    this.kazagumo = kazagumoService.getClient();
     this.sessions = new Map();
   }
 
-  async join(guild, voiceChannel) {
-    const connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: guild.id,
-      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-    });
+  async joinOrMove(guild, voiceChannel, textChannelId) {
+    const guildId = guild.id;
+    const channelId = voiceChannel.id;
 
-    await entersState(connection, VoiceConnectionStatus.Ready, 5_000); // wait 5 seconds for the connection to be ready
+    this.sessions.set(guildId, { channelId });
 
-    const session = {
-      connection,
-      channelId: voiceChannel.id,
-      queue: [], //placeholder - music module will fill this in
-      nowPlaying: null, //placeholder
-      tasks: new Set(), //placeholder - for stream/timer cancellation
-    };
+    const player = this.kazagumo.players.get(guildId);
 
-    this.sessions.set(guild.id, session);
+    if (!player) {
+      await this.kazagumo.createPlayer({
+        guildId,
+        voiceId: channelId,
+        textId: textChannelId,
+        deaf: true,
+        volume: 50,
+      });
+      return "joined";
+    }
 
-    // Safety: if the connection is lost, cleanup the session
-    connection.on("stateChange", (_, newState) => {
-      if (newState.status === VoiceConnectionStatus.Disconnected) {
-        this.leave(guild.id); // safe to call even if already cleaned up
-      }
-    });
+    if (player.voiceId !== channelId) {
+      player.setVoiceChannel(channelId);
+      return "moved";
+    }
+
+    return "already";
   }
 
   // Called by /leave or future auto-disconnect logic. Safe to call multiple times.
-  leave(guildId) {
-    const session = this.sessions.get(guildId);
-    if (!session) return; // already left or never joined
+  async leaveAndDestroy(guildId) {
+    const player = this.kazagumo.players.get(guildId);
 
-    // Clean up from map first
+    if (player) {
+      await player.destroy();
+    }
+
+    const hadSession = this.sessions.has(guildId);
     this.sessions.delete(guildId);
 
-    // Cleanup - will expand with music module
-    session.tasks.forEach((t) => typeof t.cancel === "function" && t.cancel());
-    session.queue = [];
-    session.nowPlaying = null;
-
-    // Destroy the connection if still alive
-
-    try {
-      if (session.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        session.connection.destroy();
-      }
-    } catch (error) {
-      this.logger.error(
-        `Error destroying voice connection for guild ${guildId}:`,
-        error,
-      );
-    }
+    return hadSession ? "left" : "not_connected";
   }
 
   // Called on shutdown - gracefully leave all voice channels.
-  leaveAll() {
+  async leaveAll() {
     for (const guildId of [...this.sessions.keys()]) {
-      this.leave(guildId);
+      await this.leaveAndDestroy(guildId);
     }
   }
 
@@ -80,10 +59,6 @@ class VoiceConnectionService {
 
   getChannelId(guildId) {
     return this.sessions.get(guildId)?.channelId ?? null;
-  }
-
-  getConnection(guildId) {
-    return this.sessions.get(guildId)?.connection ?? null;
   }
 }
 

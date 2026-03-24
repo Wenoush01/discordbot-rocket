@@ -7,6 +7,7 @@ class Queue {
   // Add a track to the end of the queue
   enqueue(track) {
     this.tracks.push(track);
+    console.log(`Enqueued track: ${track.title}`);
     return this.tracks.length;
   }
 
@@ -14,12 +15,14 @@ class Queue {
   startIfIdle() {
     if (this.current || this.tracks.length === 0) return this.current;
     this.current = this.tracks.shift();
+    console.log(`Started track: ${this.current?.title ?? "none"}`);
     return this.current;
   }
 
   // Called when the current track finishes - moves the next track from the queue to current and returns it
   advance() {
     this.current = this.tracks.length > 0 ? this.tracks.shift() : null;
+    console.log(`Advanced to track: ${this.current?.title ?? "none"}`);
     return this.current;
   }
 

@@ -1,12 +1,10 @@
 import crypto from "crypto";
 
 class Track {
-  constructor({ id, title, url, duration, thumbnail, source, streamFactory }) {
+  constructor({ id, title, url, duration, thumbnail, source, kazagumoTrack }) {
     if (!title) throw new Error("Track title required");
     if (!url) throw new Error("Track url required");
-    if (typeof streamFactory !== "function") {
-      throw new Error("Track streamFactory must be a function");
-    }
+    if (!kazagumoTrack) throw new Error("Kazagumo track object required");
 
     this.id = id ?? crypto.randomUUID(); // Unique identifier for the track
     this.title = title;
@@ -14,7 +12,7 @@ class Track {
     this.duration = Number(duration || 0); // Duration in seconds
     this.thumbnail = thumbnail || null;
     this.source = source ?? "unknown";
-    this.streamFactory = streamFactory; // Function that returns a readable stream for the track
+    this.kazagumoTrack = kazagumoTrack || null; // Store the original Kazagumo track object for later use
 
     Object.freeze(this); // Make the track instance immutable
   }

@@ -1,18 +1,35 @@
-import {
-  createAudioPlayer,
-  createAudioResource,
-  AudioPlayerStatus,
-  NoSubscriberBehavior,
-} from "@discordjs/voice";
+import Track from "../domain/Track.js";
 
 class PlaybackService {
-  constructor({ queueRepository, voiceConnectionService, logger }) {
+  constructor({
+    queueRepository,
+    voiceConnectionService: voiceService,
+    kazagumoService,
+    logger,
+    audioSourceResolver,
+  }) {
     this.queueRepository = queueRepository;
-    this.voiceConnectionService = voiceConnectionService;
+    this.voiceConnectionService = voiceService;
+    this.kazagumoService = kazagumoService;
     this.logger = logger;
+    this.audioSourceResolver = audioSourceResolver;
+    this.kazagumo = kazagumoService.getClient();
+    this.registerKazagumoEvents();
+  }
 
-    // One AudioPlayer per guild
-    this.players = new Map(); // guildId -> AudioPlayer
+  async enqueueAndPlayIfIdle(guildId, input) {
+    const payload = await this.audioSourceResolver.resolve(input);
+    const track = new Track(payload);
+
+    const queue = this.queueRepository.getOrCreate(guildId);
+    const wasIdle = !queue.getCurrent();
+    const queuePos = queue.enqueue(track);
+
+    if (wasIdle) {
+      await this.startIfIdle(guildId);
+      return { status: "started", track };
+    }
+    return { status: "queued", track, queuePos };
   }
 
   async startIfIdle(guildId) {
@@ -24,33 +41,30 @@ class PlaybackService {
   }
 
   async playTrack(guildId, track) {
-    const connection = this.voiceConnectionService.getConnection(guildId);
-    if (!connection) {
+    const voiceChannelId = this.voiceConnectionService.getChannelId(guildId);
+    if (!voiceChannelId) {
       this.logger.error(
-        `[PlaybackService] No voice connection for guild ${guildId}`,
+        `[PlaybackService] No voice channel selected for guild ${guildId}`,
       );
       return;
     }
 
-    const player = this.getOrCreatePlayer(guildId);
-    connection.subscribe(player);
-
     try {
-      this.logger.info(
-        `[PlaybackService] Starting playback of track '${track.title}' in guild ${guildId}`,
-      );
-      const streamData = await track.streamFactory();
-      if (!streamData?.stream) {
-        throw new Error("Stream factory did not return a valid stream.");
+      let player = this.kazagumo.players.get(guildId);
+
+      if (!player) {
+        player = await this.kazagumo.createPlayer({
+          guildId,
+          voiceId: voiceChannelId,
+          textId: undefined,
+          deaf: true,
+          volume: 50,
+        });
+      } else if (player.voiceId !== voiceChannelId) {
+        player.setVoiceChannel(voiceChannelId);
       }
 
-      const resource = createAudioResource(streamData.stream, {
-        inputType: streamData.inputType,
-        inlineVolume: true, // Enable volume control
-      });
-
-      resource.volume.setVolume(0.5); // Set default volume to 50%
-      player.play(resource);
+      await player.play(track.kazagumoTrack);
     } catch (error) {
       this.logger.error(
         `[PlaybackService] Error playing track '${track.title}' in guild ${guildId}:`,
@@ -61,7 +75,7 @@ class PlaybackService {
   }
 
   async advance(guildId) {
-    const queue = this.queueRepository.getOrCreate(guildId);
+    const queue = this.queueRepository.get(guildId);
     if (!queue) return;
 
     const next = queue.advance();
@@ -69,16 +83,17 @@ class PlaybackService {
       this.logger.info(`[PlaybackService] Queue finished in guild ${guildId}`);
       return;
     }
-
+    this.logger.info(
+      `[PlaybackService] Advancing to next track '${next.title}'`,
+    );
     await this.playTrack(guildId, next);
   }
 
   // Called by /leave, VoiceStateUpdate, and GracefulShutdown
-  stop(guildId) {
-    const player = this.players.get(guildId);
+  async stop(guildId) {
+    const player = this.kazagumo.players.get(guildId);
     if (player) {
-      player.stop(true); // true = force, skips Idle event
-      this.players.delete(guildId); // Clean up player instance
+      await player.destroy();
     }
     this.queueRepository.clear(guildId); // Clear the queue when leaving
     this.logger.info(
@@ -87,37 +102,79 @@ class PlaybackService {
   }
 
   // Called by GracefulShutdown ONLY
-  stopAll() {
-    for (const guildId of [...this.players.keys()]) {
-      this.stop(guildId);
+  async stopAll() {
+    for (const guildId of [...this.kazagumo.players.keys()]) {
+      await this.stop(guildId);
     }
   }
 
-  getOrCreatePlayer(guildId) {
-    if (this.players.has(guildId)) return this.players.get(guildId);
+  isSameTrack(current, ended) {
+    if (!current || !ended) return false;
 
-    const player = createAudioPlayer({
-      behaviors: {
-        noSubscriber: NoSubscriberBehavior.Pause, // Pause when no listeners, resume when they come back
-      },
-    });
+    return (
+      current.url === (ended.uri || ended.url || null) &&
+      current.title === ended.title
+    );
+  }
 
-    player.on(AudioPlayerStatus.Idle, () => {
-      this.advance(guildId).catch((error) =>
+  registerKazagumoEvents() {
+    this.kazagumo.on("playerEnd", (player, track, payload) => {
+      const queue = this.queueRepository.get(player.guildId);
+      const current = queue?.getCurrent();
+
+      const endedMatchesCurrent = this.isSameTrack(current, track);
+
+      this.logger.info("[PlaybackService] PlayerEnd", {
+        guildId: player.guildId,
+        endedTitle: track?.title ?? null,
+        currentTitle: queue?.getCurrent()?.title ?? null,
+        endedMatchesCurrent,
+        payload,
+      });
+
+      if (!queue || !endedMatchesCurrent) {
+        this.logger.info(
+          `[PlaybackService] Ignoring stale playerEnd event for guild ${player.guildId}`,
+        );
+        return;
+      }
+
+      const reason = payload?.reason ?? payload?.type ?? null;
+
+      const shouldAdvance =
+        reason === "finished" ||
+        reason === "loadFailed" ||
+        reason === "stopped";
+
+      if (!shouldAdvance) {
+        this.logger.info(
+          `[PlaybackService] Ignoring non-finished playerEnd event for guild ${player.guildId}`,
+        );
+        return;
+      }
+
+      this.advance(player.guildId).catch((error) =>
         this.logger.error(
-          `[PlaybackService] Error advancing queue for guild ${guildId}:`,
+          `[PlaybackService] Error advancing queue after playerEnd in guild ${player.guildId}:`,
           error,
         ),
       );
     });
 
-    this.players.set(guildId, player);
-    return player;
-  }
+    this.logger.info("[PlaybackService] Registered Kazagumo event handlers");
 
-  isPlaying(guildId) {
-    const player = this.players.get(guildId);
-    return player?.state?.status === AudioPlayerStatus.Playing;
+    this.kazagumo.on("playerStart", (player, track) => {
+      this.logger.info(
+        `[PlaybackService] Kazagumo player started track '${track.title}' in guild ${player.guildId}`,
+      );
+    });
+
+    this.kazagumo.on("playerError", (player, error) => {
+      this.logger.error(
+        `[PlaybackService] Kazagumo player error in guild ${player.guildId}:`,
+        error,
+      );
+    });
   }
 }
 

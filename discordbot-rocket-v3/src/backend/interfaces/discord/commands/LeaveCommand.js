@@ -10,7 +10,6 @@ export default {
     const { container, logger } = context;
     const voiceService = container.get("voiceService");
 
-    // Check if user is in a guild
     if (!interaction.guild) {
       return interaction.reply({
         content: "You must be in a server to use this command.",
@@ -18,36 +17,36 @@ export default {
       });
     }
 
-    // Check if user is in a voice channel
-    if (!voiceService.isConnected(interaction.guildId)) {
+    const voiceChannel = interaction.member?.voice?.channel;
+    if (!voiceChannel) {
       return interaction.reply({
-        content: "I'm not connected to any voice channel in this server.",
+        content: "You need to be in a voice channel to use this command.",
         flags: MessageFlags.Ephemeral,
       });
     }
 
-    const botChannelId = voiceService.getChannelId(interaction.guildId);
-    if (interaction.member.voice?.channelId !== botChannelId) {
-      return interaction.reply({
-        content:
-          "You must be in the same voice channel as me to use this command.",
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      voiceService.leave(interaction.guildId);
-      await interaction.reply({
-        content: "Left the voice channel!",
-        flags: MessageFlags.Ephemeral,
-      });
-      logger.info(
-        `[LeaveCommand] Bot left voice channel in guild ${interaction.guildId}`,
-      );
+      const result = await voiceService.leaveAndDestroy(interaction.guildId);
+
+      let content;
+      switch (result) {
+        case "left":
+          content = "Left the voice channel.";
+          break;
+        case "not_connected":
+          content = "Not connected to a voice channel.";
+          break;
+        default:
+          content = "Voice cleanup finished.";
+      }
+      await interaction.editReply({ content });
+      logger.info(`[LeaveCommand] ${content}`);
     } catch (error) {
       logger.error("Error leaving voice channel:", error);
-      await interaction.reply({
-        content: "An error occurred while leaving the voice channel.",
+      await interaction.editReply({
+        content: "Failed to leave the voice channel.",
         flags: MessageFlags.Ephemeral,
       });
     }

@@ -5,8 +5,8 @@ async function GracefulShutdown(container) {
     container.get("logger").info("Bot is shutting down gracefully.");
 
     //leave all voice channels
-    container.get("playbackService").stopAll(); // Stop all playback and clear queues
-    container.get("voiceService").leaveAll();
+    await container.get("playbackService").stopAll(); // Stop all playback and clear queues
+    await container.get("voiceService").leaveAll();
 
     //destroy discord client
     const discordClient = container.get("discordClient").getClient();
