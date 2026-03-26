@@ -37,10 +37,14 @@ class Container {
     this.register("queueRepository", queueRepository);
 
     // KAZAGUMO LAVALINK CONFIG OBJECT FROM ENV
+    if (!process.env.LAVALINK_PASSWORD) {
+      throw new Error("Missing required env var: LAVALINK_PASSWORD");
+    }
+
     const lavalinkConfig = {
       host: process.env.LAVALINK_HOST || "127.0.0.1",
       port: Number(process.env.LAVALINK_PORT) || 2333,
-      password: process.env.LAVALINK_PASSWORD || "rocketseat",
+      password: process.env.LAVALINK_PASSWORD,
       secure: String(process.env.LAVALINK_SECURE || "false") === "true",
     };
 
