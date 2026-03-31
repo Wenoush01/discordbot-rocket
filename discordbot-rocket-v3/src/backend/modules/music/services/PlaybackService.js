@@ -58,6 +58,22 @@ class PlaybackService {
     return true;
   }
 
+  pause(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    player?.pause(true);
+    if (!player) return false;
+    else if (!player.paused) return false;
+    return true;
+  }
+
+  resume(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    player?.pause(false);
+    if (!player) return false;
+    else if (player.paused) return false;
+    return true;
+  }
+
   // Called by /leave, VoiceStateUpdate, and GracefulShutdown
   async stop(guildId) {
     const player = this.kazagumo.players.get(guildId);

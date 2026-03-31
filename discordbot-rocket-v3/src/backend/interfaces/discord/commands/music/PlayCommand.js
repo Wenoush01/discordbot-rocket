@@ -13,12 +13,12 @@ export default {
         .setRequired(true),
     ),
 
-  //TODO: Refactor according to new PlaybackService changes
   // No need for player existing validation, only if the player connected voice channel is the same as the user - it seemed logical to separate these validations - Service checks if player exists, command checks if the user using th command is in the same voice channel as the player
   async execute(interaction, context) {
     const { container, logger } = context;
     const playbackService = container.get("playbackService");
 
+    //User server validation
     if (!interaction.guildId) {
       return interaction.reply({
         content: "You must be in a server to use this command.",
@@ -26,6 +26,7 @@ export default {
       });
     }
 
+    //User voice channel validation
     const voiceChannel = interaction.member?.voice?.channel;
     if (!voiceChannel) {
       return interaction.reply({
@@ -33,6 +34,14 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
+
+    //Join or move to the user's voice channel before playing the track
+    const voiceService = container.get("voiceService");
+    await voiceService.joinOrMove(
+      interaction.guild,
+      voiceChannel,
+      interaction.channelId,
+    );
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

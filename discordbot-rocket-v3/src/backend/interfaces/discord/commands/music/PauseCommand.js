@@ -1,20 +1,18 @@
-//Command to skip the currently playing track and advance to the next one in the queue
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { MessageFlags } from "discord.js";
 
 export default {
   category: "music",
   data: new SlashCommandBuilder()
-    .setName("skip")
-    .setDescription(
-      "Skip the currently playing track and play the next one in the queue",
-    )
+    .setName("pause")
+    .setDescription("Pause the currently playing track")
     .addStringOption((option) =>
       option
-        .setName("input")
-        .setDescription("Skips the currently playing track")
+        .setName("boolean")
+        .setDescription("Pauses the currently playing track")
         .setRequired(false),
     ),
+
   async execute(interaction, context) {
     const { container, logger } = context;
     const playbackService = container.get("playbackService");
@@ -43,16 +41,17 @@ export default {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      const skipped = await playbackService.skip(interaction.guildId);
-      if (!skipped) {
-        return interaction.editReply("Nothing is currently playing to skip.");
+      // paused variable is the boolean result of the pause operation
+      let paused = await playbackService.pause(interaction.guildId);
+      if (paused) {
+        return interaction.editReply("Paused the currently playing track.");
+      } else {
+        return interaction.editReply("The player is not currently playing.");
       }
-
-      return interaction.editReply("Skipped the current track.");
     } catch (error) {
-      logger.error(`[MusicCommand] Error skipping track: ${error.message}`);
+      logger.error(`[MusicCommand] Error pausing track: ${error.message}`);
       return interaction.editReply(
-        "An error occurred while skipping the track.",
+        "An error occurred while pausing the track.",
       );
     }
   },

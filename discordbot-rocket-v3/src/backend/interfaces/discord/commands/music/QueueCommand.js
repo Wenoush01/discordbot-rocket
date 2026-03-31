@@ -17,7 +17,13 @@ export default {
   category: "music",
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("Show the current music queue"),
+    .setDescription("Show the current music queue")
+    .addStringOption((option) =>
+      option
+        .setName("input")
+        .setDescription("Shows the current music queue")
+        .setRequired(false),
+    ),
 
   async execute(interaction, context) {
     const { container } = context;
