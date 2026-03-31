@@ -142,7 +142,20 @@ class PlaybackService {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
     player.queue.clear();
-    player.skip();
+
+    player.setLoop("none");
+
+    if (player.playing || player.paused || player.queue.current) {
+      await player.stop();
+    }
+
+    return true;
+  }
+
+  async setLoop(guildId, mode) {
+    const player = this.kazagumo.players.get(guildId);
+    if (!player) return false;
+    player.setLoop(mode);
     return true;
   }
 
