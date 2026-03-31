@@ -7,7 +7,6 @@ import DiscordClient from "../../interfaces/discord/client/DiscordClient.js";
 import Logger from "../logger/Logger.js";
 import VoiceConnectionService from "../../services/VoiceConnectionService.js";
 import AudioSourceResolver from "../../modules/music/services/AudioSourceResolver.js";
-import QueueRepository from "../../modules/music/repositories/QueueRepository.js";
 import PlaybackService from "../../modules/music/services/PlaybackService.js";
 import KazagumoService from "../../modules/music/services/KazagumoService.js";
 import KazagumoAudioProvider from "../../modules/music/providers/KazagumoAudioProvider.js";
@@ -32,9 +31,6 @@ class Container {
     // Create an EventHandler instance
     const eventHandler = new EventHandler({ client, logger, container: this });
     this.register("eventHandler", eventHandler);
-    // Create a QueueRepository instance
-    const queueRepository = new QueueRepository();
-    this.register("queueRepository", queueRepository);
 
     // KAZAGUMO LAVALINK CONFIG OBJECT FROM ENV
     if (!process.env.LAVALINK_PASSWORD) {
@@ -79,7 +75,6 @@ class Container {
 
     // Create a PlaybackService instance
     const playbackService = new PlaybackService({
-      queueRepository,
       voiceConnectionService: voiceService,
       kazagumoService,
       logger,

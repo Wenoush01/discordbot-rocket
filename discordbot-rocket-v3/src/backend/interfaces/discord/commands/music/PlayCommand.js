@@ -13,6 +13,8 @@ export default {
         .setRequired(true),
     ),
 
+  //TODO: Refactor according to new PlaybackService changes
+  // No need for player existing validation, only if the player connected voice channel is the same as the user - it seemed logical to separate these validations - Service checks if player exists, command checks if the user using th command is in the same voice channel as the player
   async execute(interaction, context) {
     const { container, logger } = context;
     const playbackService = container.get("playbackService");
