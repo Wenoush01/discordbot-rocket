@@ -138,6 +138,13 @@ class PlaybackService {
     return player.volume;
   }
 
+  async clearQueue(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    if (!player) return false;
+    player.queue.clear();
+    return true;
+  }
+
   //Logs only - no logic
   registerKazagumoEvents() {
     this.kazagumo.on("playerStart", (player, track) => {

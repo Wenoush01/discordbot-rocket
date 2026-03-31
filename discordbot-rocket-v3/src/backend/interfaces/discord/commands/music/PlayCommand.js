@@ -49,16 +49,17 @@ export default {
         interaction.guildId,
         input,
       );
-
-      if (result.status === "started") {
+      if (result.kind === "playlist") {
+        // Playlist result
         return interaction.reply({
-          content: `Now playing: **${result.track.title}**`,
+          content: `Added playlist **${result.playlistTitle}** with ${result.tracksAdded} tracks to the queue.`,
+        });
+      } else {
+        // Single track result
+        return interaction.reply({
+          content: `Added **${result.track.title}** to the queue.`,
         });
       }
-
-      return interaction.reply({
-        content: `Added to queue at position ${result.queuePos}: **${result.track.title}**`,
-      });
     } catch (error) {
       // Better error handling with logging - Errors gave me {} - not very helpful
       const errorMessage =
