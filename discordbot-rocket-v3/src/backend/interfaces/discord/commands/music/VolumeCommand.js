@@ -38,25 +38,24 @@ export default {
       });
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
       const volume = interaction.options.getInteger("volume", true);
-      const setVolume = await playbackService.setVolume(
-        interaction.guildId,
-        volume,
-      );
       //Validate volume range (1 - 100)
       if (volume < 1 || volume > 100) {
-        return interaction.editReply({
+        return interaction.reply({
           content: "Volume must be between 1 and 100.",
           flags: MessageFlags.Ephemeral,
         });
       }
+      const setVolume = await playbackService.setVolume(
+        interaction.guildId,
+        volume,
+      );
+
       if (setVolume) {
-        return interaction.editReply(`Volume set to ${volume}.`);
+        return interaction.reply(`Volume set to ${volume}.`);
       } else {
-        return interaction.editReply("Failed to set volume.");
+        return interaction.reply("Failed to set volume.");
       }
     } catch (error) {
       logger.error(`[MusicCommand] Error setting volume: ${error.message}`);

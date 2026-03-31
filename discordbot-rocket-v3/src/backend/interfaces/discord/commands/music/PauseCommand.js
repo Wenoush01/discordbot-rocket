@@ -5,13 +5,7 @@ export default {
   category: "music",
   data: new SlashCommandBuilder()
     .setName("pause")
-    .setDescription("Pause the currently playing track")
-    .addBooleanOption((option) =>
-      option
-        .setName("boolean")
-        .setDescription("Pauses the currently playing track")
-        .setRequired(false),
-    ),
+    .setDescription("Pause the currently playing track"),
 
   async execute(interaction, context) {
     const { container, logger } = context;
@@ -37,22 +31,15 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
-
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
-      // paused variable is the boolean result of the pause operation
-      let paused = playbackService.pause(interaction.guildId);
+      const paused = await playbackService.pause(interaction.guildId);
       if (paused) {
-        return interaction.editReply("Paused the currently playing track.");
+        return interaction.reply("Paused the currently playing track.");
       } else {
-        return interaction.editReply("The player is not currently playing.");
+        return interaction.reply("The player is not currently playing.");
       }
     } catch (error) {
       logger.error(`[MusicCommand] Error pausing track: ${error.message}`);
-      return interaction.editReply(
-        "An error occurred while pausing the track.",
-      );
     }
   },
 };

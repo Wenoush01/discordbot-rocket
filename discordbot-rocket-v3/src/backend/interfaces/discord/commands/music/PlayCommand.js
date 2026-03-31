@@ -43,8 +43,6 @@ export default {
       interaction.channelId,
     );
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
       const input = interaction.options.getString("input", true);
       const result = await playbackService.enqueueAndPlayIfIdle(
@@ -53,12 +51,12 @@ export default {
       );
 
       if (result.status === "started") {
-        return interaction.editReply({
+        return interaction.reply({
           content: `Now playing: **${result.track.title}**`,
         });
       }
 
-      return interaction.editReply({
+      return interaction.reply({
         content: `Added to queue at position ${result.queuePos}: **${result.track.title}**`,
       });
     } catch (error) {

@@ -40,20 +40,15 @@ export default {
       });
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
       const skipped = await playbackService.skip(interaction.guildId);
-      if (!skipped) {
-        return interaction.editReply("Nothing is currently playing to skip.");
+      if (skipped) {
+        return interaction.reply("Skipped the current track.");
+      } else {
+        return interaction.reply("There is no track to skip.");
       }
-
-      return interaction.editReply("Skipped the current track.");
     } catch (error) {
       logger.error(`[MusicCommand] Error skipping track: ${error.message}`);
-      return interaction.editReply(
-        "An error occurred while skipping the track.",
-      );
     }
   },
 };

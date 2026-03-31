@@ -5,13 +5,7 @@ export default {
   category: "music",
   data: new SlashCommandBuilder()
     .setName("resume")
-    .setDescription("Resume the currently paused track")
-    .addBooleanOption((option) =>
-      option
-        .setName("boolean")
-        .setDescription("Resumes the currently paused track")
-        .setRequired(false),
-    ),
+    .setDescription("Resume the currently paused track"),
 
   async execute(interaction, context) {
     const { container, logger } = context;
@@ -37,21 +31,15 @@ export default {
         flags: MessageFlags.Ephemeral,
       });
     }
-
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     try {
       const resumed = await playbackService.resume(interaction.guildId);
       if (resumed) {
-        return interaction.editReply("Resumed the currently paused track.");
+        return interaction.reply("Resumed the currently paused track.");
       } else {
-        return interaction.editReply("The player is not currently paused.");
+        return interaction.reply("The player is not currently paused.");
       }
     } catch (error) {
       logger.error(`[MusicCommand] Error resuming track: ${error.message}`);
-      return interaction.editReply(
-        "An error occurred while resuming the track.",
-      );
     }
   },
 };

@@ -51,11 +51,11 @@ class PlaybackService {
     return { status: "queued", track, queuePos };
   }
 
-  async skip(guildId) {
+  skip(guildId) {
     const player = this.kazagumo.players.get(guildId);
     if (!player || (!player.playing && !player.paused)) return false;
 
-    await player.skip();
+    player.skip();
     return true;
   }
 
