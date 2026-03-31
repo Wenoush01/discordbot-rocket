@@ -8,12 +8,6 @@ export default {
     .setName("skip")
     .setDescription(
       "Skip the currently playing track and play the next one in the queue",
-    )
-    .addStringOption((option) =>
-      option
-        .setName("input")
-        .setDescription("Skips the currently playing track")
-        .setRequired(false),
     ),
   async execute(interaction, context) {
     const { container, logger } = context;

@@ -142,6 +142,7 @@ class PlaybackService {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
     player.queue.clear();
+    player.skip();
     return true;
   }
 
