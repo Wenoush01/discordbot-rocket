@@ -6,7 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("pause")
     .setDescription("Pause the currently playing track")
-    .addStringOption((option) =>
+    .addBooleanOption((option) =>
       option
         .setName("boolean")
         .setDescription("Pauses the currently playing track")
@@ -42,7 +42,7 @@ export default {
 
     try {
       // paused variable is the boolean result of the pause operation
-      let paused = await playbackService.pause(interaction.guildId);
+      let paused = playbackService.pause(interaction.guildId);
       if (paused) {
         return interaction.editReply("Paused the currently playing track.");
       } else {

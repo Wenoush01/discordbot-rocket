@@ -4,13 +4,13 @@ import { MessageFlags } from "discord.js";
 export default {
   category: "music",
   data: new SlashCommandBuilder()
-    .setName("resume")
-    .setDescription("Resume the currently paused track")
-    .addBooleanOption((option) =>
+    .setName("volume")
+    .setDescription("Set the volume of the music player")
+    .addIntegerOption((option) =>
       option
-        .setName("boolean")
-        .setDescription("Resumes the currently paused track")
-        .setRequired(false),
+        .setName("volume")
+        .setDescription("The volume to set (1-100)")
+        .setRequired(true),
     ),
 
   async execute(interaction, context) {
@@ -41,17 +41,25 @@ export default {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      const resumed = await playbackService.resume(interaction.guildId);
-      if (resumed) {
-        return interaction.editReply("Resumed the currently paused track.");
+      const volume = interaction.options.getInteger("volume", true);
+      const setVolume = await playbackService.setVolume(
+        interaction.guildId,
+        volume,
+      );
+      //Validate volume range (1 - 100)
+      if (volume < 1 || volume > 100) {
+        return interaction.editReply({
+          content: "Volume must be between 1 and 100.",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+      if (setVolume) {
+        return interaction.editReply(`Volume set to ${volume}.`);
       } else {
-        return interaction.editReply("The player is not currently paused.");
+        return interaction.editReply("Failed to set volume.");
       }
     } catch (error) {
-      logger.error(`[MusicCommand] Error resuming track: ${error.message}`);
-      return interaction.editReply(
-        "An error occurred while resuming the track.",
-      );
+      logger.error(`[MusicCommand] Error setting volume: ${error.message}`);
     }
   },
 };

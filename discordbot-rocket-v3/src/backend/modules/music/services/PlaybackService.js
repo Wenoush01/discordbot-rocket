@@ -23,6 +23,7 @@ class PlaybackService {
       throw new Error("You must be in a voice channel to play music.");
     }
 
+    // every instance will start off with 10
     let player = this.kazagumo.players.get(guildId);
     if (!player) {
       player = await this.kazagumo.createPlayer({
@@ -30,7 +31,7 @@ class PlaybackService {
         voiceId: voiceChannelId,
         textId: undefined,
         deaf: true,
-        volume: 50,
+        volume: 10,
       });
     } else if (player.voiceChannelId !== voiceChannelId) {
       player.setVoiceChannel(voiceChannelId);
@@ -90,6 +91,25 @@ class PlaybackService {
     for (const guildId of [...this.kazagumo.players.keys()]) {
       await this.stop(guildId);
     }
+  }
+
+  // SetVolume should not directly change the defaultVolume - it should modify it by the input in percentage. Example: defaultVolume is 15, user inputs 50, the resulting volume should be 7.5 (50% of 15). If user inputs 100, the resulting volume should be 15 (100% of 15)
+  async setVolume(guildId, volume) {
+    const player = this.kazagumo.players.get(guildId);
+    if (!player) return false;
+    const defaultVolume = 10;
+    const newVolume = Math.round((volume / 100) * defaultVolume);
+    player.setVolume(newVolume);
+    this.logger.info(
+      `[PlaybackService] Set volume for guild ${guildId} to ${newVolume} (input: ${volume}%)`,
+    );
+    return true;
+  }
+
+  async getVolume(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    if (!player) return null;
+    return player.volume;
   }
 
   //Logs only - no logic
