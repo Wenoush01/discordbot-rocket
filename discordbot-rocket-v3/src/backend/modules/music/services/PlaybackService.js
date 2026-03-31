@@ -30,7 +30,7 @@ class PlaybackService {
         voiceId: voiceChannelId,
         textId: undefined,
         deaf: true,
-        volume: 10,
+        volume: 2,
       });
     } else if (player.voiceChannelId !== voiceChannelId) {
       player.setVoiceChannel(voiceChannelId);
@@ -123,7 +123,7 @@ class PlaybackService {
   async setVolume(guildId, volume) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
-    const defaultVolume = 10;
+    const defaultVolume = 100;
     const newVolume = Math.round((volume / 100) * defaultVolume);
     player.setVolume(newVolume);
     this.logger.info(

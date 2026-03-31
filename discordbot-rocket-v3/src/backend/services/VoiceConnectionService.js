@@ -19,7 +19,7 @@ class VoiceConnectionService {
         voiceId: channelId,
         textId: textChannelId,
         deaf: true,
-        volume: 10,
+        volume: 2,
       });
       return "joined";
     }
