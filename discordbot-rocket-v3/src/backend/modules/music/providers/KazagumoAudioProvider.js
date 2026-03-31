@@ -23,6 +23,10 @@ class KazagumoAudioProvider extends AudioProvider {
     const first = result.tracks[0];
 
     return {
+      type: result.type, // "track", "playlist", etc.
+      playlistName: result.playlistName || null, // Only for playlists, null for single tracks
+      tracks: result.tracks, // N for playlists, 1 for single tracks
+      // Common track info
       title: first.title,
       url: first.uri || first.url || null, // new observation, uri exists and now i know, wow
       duration: Math.floor((first.length || 0) / 1000), // Convert ms to seconds
