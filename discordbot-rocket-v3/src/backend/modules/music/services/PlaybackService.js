@@ -17,7 +17,6 @@ class PlaybackService {
 
   async enqueueAndPlayIfIdle(guildId, input) {
     const payload = await this.audioSourceResolver.resolve(input);
-    const track = new Track(payload);
     const voiceChannelId = this.voiceConnectionService.getChannelId(guildId);
     if (!voiceChannelId) {
       throw new Error("You must be in a voice channel to play music.");
@@ -37,18 +36,45 @@ class PlaybackService {
       player.setVoiceChannel(voiceChannelId);
     }
 
-    player.queue.add(track.kazagumoTrack);
+    // Single track vs playlist (PLAYLIST TYPE)
+    if (payload.type === "PLAYLIST") {
+      // Add all tracks in playlist to queue at once
+      player.queue.add(payload.tracks);
 
-    const wasIdle = !player.playing && !player.paused;
-    if (wasIdle) {
-      await player.play();
-      return { status: "started", track };
+      const wasIdle = !player.playing && !player.paused;
+      if (wasIdle) {
+        await player.play();
+        return {
+          status: "started",
+          kind: "playlist",
+          playlistName: payload.playlistName,
+          trackCount: payload.tracks.length,
+          title: payload.title,
+        };
+      }
+
+      return {
+        status: "queued",
+        kind: "playlist",
+        playlistName: payload.playlistName,
+        trackCount: payload.tracks.length,
+        title: payload.title,
+      };
+    } else {
+      // Single track (TRACK TYPE)
+      const track = new Track(payload);
+      player.queue.add(track.kazagumoTrack);
+      const wasIdle = !player.playing && !player.paused;
+      if (wasIdle) {
+        await player.play();
+        return { status: "started", kind: "track", track };
+      }
+
+      const queuePos = Array.isArray(player.queue)
+        ? player.queue.length
+        : undefined;
+      return { status: "queued", kind: "track", track, queuePos };
     }
-
-    const queuePos = Array.isArray(player.queue)
-      ? player.queue.length
-      : undefined;
-    return { status: "queued", track, queuePos };
   }
 
   skip(guildId) {
