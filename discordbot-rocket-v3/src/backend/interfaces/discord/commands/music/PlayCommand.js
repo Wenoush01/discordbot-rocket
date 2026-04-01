@@ -17,6 +17,7 @@ export default {
   async execute(interaction, context) {
     const { container, logger } = context;
     const playbackService = container.get("playbackService");
+    const nowPlayingCardService = container.get("nowPlayingCardService");
 
     //User server validation
     if (!interaction.guildId) {
@@ -48,6 +49,10 @@ export default {
       const result = await playbackService.enqueueAndPlayIfIdle(
         interaction.guildId,
         input,
+      );
+      nowPlayingCardService.setChannelHint(
+        interaction.guildId,
+        interaction.channelId,
       );
       if (result.kind === "playlist") {
         // Playlist result

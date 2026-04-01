@@ -39,6 +39,8 @@ class MusicInteractionService {
         return;
     }
 
-    await this.nowPlayingCardService.refresh(interaction.guildId);
+    await this.nowPlayingCardService.refreshGuild(interaction.guildId);
   }
 }
+
+export default MusicInteractionService;

@@ -10,6 +10,10 @@ import AudioSourceResolver from "../../modules/music/services/AudioSourceResolve
 import PlaybackService from "../../modules/music/services/PlaybackService.js";
 import KazagumoService from "../../modules/music/services/KazagumoService.js";
 import KazagumoAudioProvider from "../../modules/music/providers/KazagumoAudioProvider.js";
+import NowPlayingCardService from "../../modules/music/services/NowPlayingCardService.js";
+import NowPlayingSyncService from "../../modules/music/services/NowPlayingSyncService.js";
+import MusicControlValidator from "../../modules/music/services/MusicControlValidator.js";
+import MusicInteractionService from "../../modules/music/services/MusicInteractionService.js";
 
 class Container {
   constructor() {
@@ -73,6 +77,14 @@ class Container {
     });
     this.register("audioSourceResolver", audioSourceResolver);
 
+    // Create a NowPlayingCardService instance
+    const nowPlayingCardService = new NowPlayingCardService({
+      client: client.getClient(),
+      kazagumoService,
+      logger,
+    });
+    this.register("nowPlayingCardService", nowPlayingCardService);
+
     // Create a PlaybackService instance
     const playbackService = new PlaybackService({
       voiceConnectionService: voiceService,
@@ -81,6 +93,29 @@ class Container {
       audioSourceResolver,
     });
     this.register("playbackService", playbackService);
+
+    // Create a MusicControlValidator instance
+    const musicControlValidator = new MusicControlValidator({
+      kazagumoService,
+    });
+    this.register("musicControlValidator", musicControlValidator);
+
+    // Create a MusicInteractionService instance
+    const musicInteractionService = new MusicInteractionService({
+      playbackService,
+      musicControlValidator,
+      nowPlayingCardService,
+      logger,
+    });
+    this.register("musicInteractionService", musicInteractionService);
+
+    //  Create NowPlayingSyncService instance and call init() once
+    const nowPlayingSyncService = new NowPlayingSyncService({
+      kazagumoService: this.get("kazagumoService"),
+      nowPlayingCardService: this.get("nowPlayingCardService"),
+      logger: this.get("logger"),
+    });
+    nowPlayingSyncService.init();
   }
 
   // Register a service with a given name

@@ -46,3 +46,5 @@ class MusicControlValidator {
     return { ok: true, player };
   }
 }
+
+export default MusicControlValidator;

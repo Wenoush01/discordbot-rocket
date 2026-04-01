@@ -15,6 +15,7 @@ class PlaybackService {
     this.registerKazagumoEvents();
   }
 
+  // Be careful to stay domain-focused. AI tried to refactor it to implement NowPlayingCard logic here but that would be a violation of SRP. PlaybackService should only be responsible for controlling playback and queue, not how the UI is updated.
   async enqueueAndPlayIfIdle(guildId, input) {
     const payload = await this.audioSourceResolver.resolve(input);
     const voiceChannelId = this.voiceConnectionService.getChannelId(guildId);

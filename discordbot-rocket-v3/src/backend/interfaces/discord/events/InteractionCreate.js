@@ -10,7 +10,7 @@ export default {
       if (interaction.isButton()) {
         if (!interaction.customId?.startsWith("music:")) return;
 
-        const musicInteractionService = container.resolve(
+        const musicInteractionService = container.get(
           "musicInteractionService",
         );
         await musicInteractionService.handleButton(interaction);

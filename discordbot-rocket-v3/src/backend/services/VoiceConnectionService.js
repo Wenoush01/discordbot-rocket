@@ -60,6 +60,10 @@ class VoiceConnectionService {
   getChannelId(guildId) {
     return this.sessions.get(guildId)?.channelId ?? null;
   }
+
+  getTextChannelId(guildId) {
+    return this.kazagumo.players.get(guildId)?.textId ?? null;
+  }
 }
 
 export default VoiceConnectionService;
