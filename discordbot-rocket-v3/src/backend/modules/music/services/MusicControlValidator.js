@@ -2,6 +2,8 @@
 // This module's purpose: validate guild, player existing, same voice-channel as user
 // Should return a normalized result - ok / errorMessage
 
+//TODO: Consider integrating to all music interactions
+
 import { MessageFlags } from "discord.js";
 
 class MusicControlValidator {

@@ -36,6 +36,7 @@ class MusicInteractionService {
         await this.playbackService.clearQueue(interaction.guildId);
         break;
       case "music:stop":
+        await this.playbackService.clearQueue(interaction.guildId);
         await this.playbackService.stop(interaction.guildId);
         break;
       default:

@@ -30,6 +30,7 @@ class NowPlayingCardService {
     this.kazagumo = kazagumoService.getClient();
     this.logger = logger;
     this.channelHints = new Map();
+    this.cardRefs = new Map();
   }
 
   setChannelHint(guildId, channelId) {
@@ -45,7 +46,10 @@ class NowPlayingCardService {
     if (!channel) return null;
 
     const payload = this.buildPayload(player);
-    const messageId = player.data?.get?.("nowPlayingMessageId");
+
+    const ref = this.cardRefs.get(guildId);
+    const messageId =
+      player.data?.get?.("nowPlayingMessageId") ?? ref?.messageId;
 
     if (messageId) {
       const existingMessage = await channel.messages
@@ -54,6 +58,14 @@ class NowPlayingCardService {
 
       if (existingMessage) {
         await existingMessage.edit(payload);
+
+        player.data?.set?.("nowPlayingMessageId", existingMessage.id);
+        player.data?.set?.("nowPlayingChannelId", channel.id);
+        this.cardRefs.set(guildId, {
+          channelId: channel.id,
+          messageId: existingMessage.id,
+        });
+
         return existingMessage;
       }
     }
@@ -61,6 +73,10 @@ class NowPlayingCardService {
     const sentMessage = await channel.send(payload);
     player.data?.set?.("nowPlayingMessageId", sentMessage.id);
     player.data?.set?.("nowPlayingChannelId", channel.id);
+    this.cardRefs.set(guildId, {
+      channelId: channel.id,
+      messageId: sentMessage.id,
+    });
 
     return sentMessage;
   }
@@ -71,7 +87,41 @@ class NowPlayingCardService {
     player?.data?.delete?.("nowPlayingMessageId");
     player?.data?.delete?.("nowPlayingChannelId");
 
+    this.cardRefs.delete(guildId);
     this.channelHints.delete(guildId);
+  }
+
+  //function to remove the card message
+  async removeGuild(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    const ref = this.cardRefs.get(guildId);
+
+    const channelId =
+      player?.data?.get?.("nowPlayingChannelId") ??
+      ref?.channelId ??
+      this.channelHints.get(guildId);
+    const messageId =
+      player?.data?.get?.("nowPlayingMessageId") ?? ref?.messageId;
+
+    if (!channelId || !messageId) return;
+
+    const channel = await this.client.channels
+      .fetch(channelId)
+      .catch(() => null);
+    if (!channel?.isTextBased?.()) return;
+
+    const message = await channel.messages.fetch(messageId).catch(() => null);
+    if (!message) return;
+
+    try {
+      await message.delete();
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `[NowPlayingCardService] Failed to delete card message for guild ${guildId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    return false;
   }
 
   async getTargetChannel(player) {

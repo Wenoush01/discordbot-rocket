@@ -39,6 +39,17 @@ class NowPlayingSyncService {
         );
       }
     });
+
+    this.kazagumo.on("playerDestroy", async (player) => {
+      try {
+        await this.nowPlayingCardService.removeGuild(player.guildId);
+        await this.nowPlayingCardService.clearGuild(player.guildId);
+      } catch (error) {
+        this.logger.error(
+          `[NowPlayingSyncService] Failed on playerDestroy for guild ${player.guildId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    });
   }
 }
 
