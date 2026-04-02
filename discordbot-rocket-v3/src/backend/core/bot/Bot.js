@@ -9,6 +9,9 @@ class Bot {
     // ConfigLoader
     this.config = container.get("config");
 
+    // API server
+    this.apiServer = container.get("apiServer");
+
     // Get the command and event handlers from the container
     this.commandHandler = container.get("commandHandler");
     this.eventHandler = container.get("eventHandler");
@@ -23,6 +26,8 @@ class Bot {
     await this.commandHandler.loadCommands();
     // Log in to Discord with the bot token
     await this.client.login(this.config.discord.token);
+    // Start the API server
+    await this.apiServer.start();
   }
 }
 

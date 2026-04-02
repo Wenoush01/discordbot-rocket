@@ -15,6 +15,8 @@ import NowPlayingCardService from "../../modules/music/services/NowPlayingCardSe
 import NowPlayingSyncService from "../../modules/music/services/NowPlayingSyncService.js";
 import MusicControlValidator from "../../modules/music/services/MusicControlValidator.js";
 import MusicInteractionService from "../../modules/music/services/MusicInteractionService.js";
+// Server imports
+import createApiServer from "../../interfaces/api/ApiServer.js";
 
 class Container {
   constructor() {
@@ -29,6 +31,11 @@ class Container {
     // Initialize Config Loader and register the loaded config
     const config = ConfigLoader.load();
     this.register("config", config);
+
+    //Initialize API Server and register it
+    const apiServer = createApiServer({ config, logger });
+    this.register("apiServer", apiServer);
+
     // Create a CommandHandler instance
     const commandHandler = new CommandHandler({
       client,

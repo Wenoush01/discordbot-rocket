@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "web:dev": "vite --host 0.0.0.0 --port 5173",
+    "web:dev": "vite src/frontend --host 0.0.0.0 --port 5173",
     "register:commands": "node src/backend/interfaces/discord/scripts/RegisterCommands.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

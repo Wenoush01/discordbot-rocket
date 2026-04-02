@@ -8,6 +8,9 @@ async function GracefulShutdown(container) {
     await container.get("playbackService").stopAll(); // Stop all playback and clear queues
     await container.get("voiceService").leaveAll();
 
+    //Stop the API server
+    await container.get("apiServer").stop();
+
     //destroy discord client
     const discordClient = container.get("discordClient").getClient();
     discordClient.destroy();
