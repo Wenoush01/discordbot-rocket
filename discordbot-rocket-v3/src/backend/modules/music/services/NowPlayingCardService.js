@@ -1,12 +1,10 @@
 // This is where the Card lives
 // This module's purpose: build embed + buttons, send/edit the card message, recover if the card message was deleted for whatever reason
 
-//TODO: Extend the Playing card so it shows: Most recently added song: title //This removes the need of replying to the user after adding a song - less clutttering in chat
-//TODO: Right now, the card updates only on player state and track change, but it should also update on queue changes
 //TODO: Playing Card should delete itself after some time of no tracks in the queue.
-//TODO: Add a button to clear the queue
 //TODO: Add a button next to each track in the "up next" list to remove that specific track from the queue
-//TODO: add a button next to each track in the "up next" list to play that specific track immediately (using skipTo when it's implemented)
+//TODO: Add a button next to each track in the "up next" list to play that specific track immediately (using skipTo when it's implemented)
+//TODO: Every update, card should check if its the last message sent in the channel, if not, it should delete itself and create a new one to stay always visible.
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -110,6 +108,7 @@ class NowPlayingCardService {
   buildEmbed(player) {
     const current = player.queue.current ?? null;
     const upcoming = Array.from(player.queue ?? []).slice(0, 3);
+    const recentlyAdded = player.data?.get?.("recentlyAdded") ?? null;
 
     const upcomingText =
       upcoming.length === 0
@@ -152,6 +151,19 @@ class NowPlayingCardService {
       )
       .setFooter({ text: "Music controls below" });
 
+    if (recentlyAdded) {
+      const recentlyAddedText =
+        recentlyAdded.type === "playlist"
+          ? `Playlist: ${recentlyAdded.playlistName} (${recentlyAdded.trackCount} tracks)`
+          : `Track: **${recentlyAdded.title}** (${formatSeconds(Number(recentlyAdded.duration ?? 0))})`;
+
+      embed.addFields({
+        name: "Recently Added",
+        value: recentlyAddedText,
+        inline: false,
+      });
+    }
+
     if (current?.thumbnail) {
       embed.setThumbnail(current.thumbnail);
     }
@@ -173,6 +185,10 @@ class NowPlayingCardService {
         .setCustomId("music:skip")
         .setLabel("Skip")
         .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId("music:clear")
+        .setLabel("Clear")
+        .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId("music:stop")
         .setLabel("Stop")

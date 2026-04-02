@@ -42,6 +42,19 @@ class PlaybackService {
       // Add all tracks in playlist to queue at once
       player.queue.add(payload.tracks);
 
+      //metadata of playlist for now playing card
+      const playlistName =
+        payload.playlistName ?? payload.title ?? "Unknown Playlist";
+      player.data?.set?.("recentlyAdded", {
+        type: "playlist",
+        title:
+          "Playlist" + playlistName + " (" + payload.tracks.length + " tracks)",
+        playlistName,
+        trackCount: payload.tracks.length,
+        thumbnail: payload.tracks?.[0]?.thumbnail ?? null,
+        addedAt: Date.now(),
+      });
+
       const wasIdle = !player.playing && !player.paused;
       if (wasIdle) {
         await player.play();
@@ -65,6 +78,17 @@ class PlaybackService {
       // Single track (TRACK TYPE)
       const track = new Track(payload);
       player.queue.add(track.kazagumoTrack);
+
+      //metadata of singular track for now playing card
+      player.data?.set?.("recentlyAdded", {
+        type: "track",
+        title: track.title,
+        duration: track.duration ?? 0,
+        url: track.url ?? null,
+        thumbnail: track.thumbnail ?? null,
+        addedAt: Date.now(),
+      });
+
       const wasIdle = !player.playing && !player.paused;
       if (wasIdle) {
         await player.play();
@@ -147,16 +171,16 @@ class PlaybackService {
     return player.volume;
   }
 
+  // Similarly to pause, there is a delay of few seconds before the loop mode is applied, might be Kazagumo/Lavalink issue. Needs investigation.
   async clearQueue(guildId) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
     player.queue.clear();
-
-    player.setLoop("none");
-
-    if (player.playing || player.paused || player.queue.current) {
-      await player.stop();
+    // stop the current track if playing too, clear it from the player
+    if (player.playing || player.paused) {
+      await player.skip();
     }
+    player.data?.delete?.("recentlyAdded");
 
     return true;
   }

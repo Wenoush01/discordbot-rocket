@@ -35,6 +35,9 @@ export default {
     try {
       const cleared = await playbackService.clearQueue(interaction.guildId);
       if (cleared) {
+        await container
+          .get("nowPlayingCardService")
+          .refreshGuild(interaction.guildId);
         return interaction.reply("Cleared the music queue.");
       } else {
         return interaction.reply("There is no queue to clear.");

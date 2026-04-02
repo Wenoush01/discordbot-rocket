@@ -13,6 +13,14 @@ export default {
         .setRequired(true),
     ),
 
+  async replyAndDelete(interaction, payload, delayMs = 2000) {
+    await interaction.reply(payload);
+
+    setTimeout(() => {
+      interaction.deleteReply().catch(() => {});
+    }, delayMs);
+  },
+
   // No need for player existing validation, only if the player connected voice channel is the same as the user - it seemed logical to separate these validations - Service checks if player exists, command checks if the user using th command is in the same voice channel as the player
   async execute(interaction, context) {
     const { container, logger } = context;
@@ -45,6 +53,9 @@ export default {
     );
 
     try {
+      const existingPlayer = playbackService.getPlayer(interaction.guildId);
+      const wasAlreadyActive =
+        existingPlayer?.playing || existingPlayer?.paused;
       const input = interaction.options.getString("input", true);
       const result = await playbackService.enqueueAndPlayIfIdle(
         interaction.guildId,
@@ -54,15 +65,22 @@ export default {
         interaction.guildId,
         interaction.channelId,
       );
+
+      if (wasAlreadyActive) {
+        await nowPlayingCardService.refresh(interaction);
+      }
+
       if (result.kind === "playlist") {
         // Playlist result
-        return interaction.reply({
-          content: `Added playlist **${result.playlistTitle}** with ${result.tracksAdded} tracks to the queue.`,
+        return this.replyAndDelete(interaction, {
+          content: `Added playlist **${result.playlistName}** with ${result.trackCount} tracks to the queue.`,
+          flags: MessageFlags.Ephemeral,
         });
       } else {
         // Single track result
-        return interaction.reply({
+        return this.replyAndDelete(interaction, {
           content: `Added **${result.track.title}** to the queue.`,
+          flags: MessageFlags.Ephemeral,
         });
       }
     } catch (error) {
