@@ -4,6 +4,9 @@
 //TODO: Extend the Playing card so it shows: Most recently added song: title //This removes the need of replying to the user after adding a song - less clutttering in chat
 //TODO: Right now, the card updates only on player state and track change, but it should also update on queue changes
 //TODO: Playing Card should delete itself after some time of no tracks in the queue.
+//TODO: Add a button to clear the queue
+//TODO: Add a button next to each track in the "up next" list to remove that specific track from the queue
+//TODO: add a button next to each track in the "up next" list to play that specific track immediately (using skipTo when it's implemented)
 import {
   ActionRowBuilder,
   ButtonBuilder,

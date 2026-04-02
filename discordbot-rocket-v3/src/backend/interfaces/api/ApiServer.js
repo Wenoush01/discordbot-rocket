@@ -2,9 +2,10 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import createHealthRouter from "./routes/health.routes";
+import createHealthRouter from "../api/routes/health.routes.js";
+import createMusicRouter from "../api/routes/music/music.routes.js";
 
-function createApiServer({ config, logger }) {
+function createApiServer({ config, logger, playbackService }) {
   const app = express();
 
   app.use(
@@ -16,7 +17,8 @@ function createApiServer({ config, logger }) {
   app.use(express.json());
 
   // Register API routes
-  app.use(createHealthRouter());
+  app.use("/api", createHealthRouter());
+  app.use("/api/music", createMusicRouter({ playbackService }));
 
   app.use((error, req, res, next) => {
     logger.error(

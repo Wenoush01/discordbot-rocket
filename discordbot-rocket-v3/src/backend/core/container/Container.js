@@ -32,10 +32,6 @@ class Container {
     const config = ConfigLoader.load();
     this.register("config", config);
 
-    //Initialize API Server and register it
-    const apiServer = createApiServer({ config, logger });
-    this.register("apiServer", apiServer);
-
     // Create a CommandHandler instance
     const commandHandler = new CommandHandler({
       client,
@@ -120,6 +116,11 @@ class Container {
       nowPlayingCardService: this.get("nowPlayingCardService"),
       logger: this.get("logger"),
     });
+
+    //Initialize API Server and register it
+    const apiServer = createApiServer({ config, logger, playbackService });
+    this.register("apiServer", apiServer);
+
     nowPlayingSyncService.init();
   }
 

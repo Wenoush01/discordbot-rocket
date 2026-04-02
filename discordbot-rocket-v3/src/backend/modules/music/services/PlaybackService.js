@@ -78,6 +78,7 @@ class PlaybackService {
     }
   }
 
+  // Similarly to pause, there is a delay of few seconds before the track actually skips, might be Kazagumo/Lavalink issue. Needs investigation.
   skip(guildId) {
     const player = this.kazagumo.players.get(guildId);
     if (!player || (!player.playing && !player.paused)) return false;
@@ -85,6 +86,10 @@ class PlaybackService {
     player.skip();
     return true;
   }
+
+  //TODO: skipTo - skip to a specific track in the queue, not just the next one. Kazagumo supports it but it needs to be exposed in the API and UI first.
+
+  //TODO: removeFromQueue - remove a specific track from the queue by index
 
   //Pause is way too slow, there is a delay of few seconds before the player actually pauses. Might be Kazagumo/Lavalink issue, needs investigation. Resume is not affected.
   pause(guildId) {
@@ -161,6 +166,33 @@ class PlaybackService {
     if (!player) return false;
     player.setLoop(mode);
     return true;
+  }
+
+  //API Server helpers and stuff
+  getPlayer(guildId) {
+    return this.kazagumo.players.get(guildId) ?? null;
+  }
+
+  getNowPlaying(guildId) {
+    const player = this.kazagumo.players.get(guildId) ?? null;
+    return player.queue.current ?? null;
+  }
+
+  getQueueSnapshot(guildId) {
+    const player = this.kazagumo.players.get(guildId);
+    return player ? [...player.queue] : [];
+  }
+
+  getPlaybackSnapshot(guildId) {
+    const player = this.kazagumo.players.get(guildId) ?? null;
+
+    return {
+      playing: player.playing,
+      paused: player.paused,
+      volume: player.volume,
+      loop: player.loop,
+      position: player.position,
+    };
   }
 
   //Logs only - no logic

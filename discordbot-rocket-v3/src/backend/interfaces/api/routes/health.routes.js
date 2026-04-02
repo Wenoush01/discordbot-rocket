@@ -1,5 +1,6 @@
+import { Router } from "express";
 function createHealthRouter() {
-  const router = router();
+  const router = Router();
 
   router.get("/health", (req, res) => {
     res.json({
