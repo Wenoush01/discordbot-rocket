@@ -86,6 +86,7 @@ class PlaybackService {
     return true;
   }
 
+  //Pause is way too slow, there is a delay of few seconds before the player actually pauses. Might be Kazagumo/Lavalink issue, needs investigation. Resume is not affected.
   pause(guildId) {
     const player = this.kazagumo.players.get(guildId);
     player?.pause(true);
@@ -121,6 +122,8 @@ class PlaybackService {
   }
 
   // SetVolume should not directly change the defaultVolume - it should modify it by the input in percentage. Example: defaultVolume is 15, user inputs 50, the resulting volume should be 7.5 (50% of 15). If user inputs 100, the resulting volume should be 15 (100% of 15)
+  // Currently bots default volume is 2 - that is not intended, should be 100. Needs investigation.
+  // Similarly to pause, there is a delay of few seconds before the new volume is applied, might be Kazagumo/Lavalink issue. Needs investigation.
   async setVolume(guildId, volume) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;

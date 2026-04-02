@@ -5,6 +5,7 @@ import CommandHandler from "../handlers/CommandHandler.js";
 import EventHandler from "../handlers/EventHandler.js";
 import DiscordClient from "../../interfaces/discord/client/DiscordClient.js";
 import Logger from "../logger/Logger.js";
+import ConfigLoader from "../config/ConfigLoader.js";
 import VoiceConnectionService from "../../services/VoiceConnectionService.js";
 import AudioSourceResolver from "../../modules/music/services/AudioSourceResolver.js";
 import PlaybackService from "../../modules/music/services/PlaybackService.js";
@@ -25,6 +26,9 @@ class Container {
     const logger = new Logger();
     this.register("logger", logger);
 
+    // Initialize Config Loader and register the loaded config
+    const config = ConfigLoader.load();
+    this.register("config", config);
     // Create a CommandHandler instance
     const commandHandler = new CommandHandler({
       client,
@@ -36,17 +40,11 @@ class Container {
     const eventHandler = new EventHandler({ client, logger, container: this });
     this.register("eventHandler", eventHandler);
 
-    // KAZAGUMO LAVALINK CONFIG OBJECT FROM ENV
-    if (!process.env.LAVALINK_PASSWORD) {
+    // KAZAGUMO LAVALINK FROM CONFIG LOADER
+    const lavalinkConfig = config.lavalink;
+    if (!lavalinkConfig.password) {
       throw new Error("Missing required env var: LAVALINK_PASSWORD");
     }
-
-    const lavalinkConfig = {
-      host: process.env.LAVALINK_HOST || "127.0.0.1",
-      port: Number(process.env.LAVALINK_PORT) || 2333,
-      password: process.env.LAVALINK_PASSWORD,
-      secure: String(process.env.LAVALINK_SECURE || "false") === "true",
-    };
 
     //INSTANTIATE KAZAGUMO SERVICE
     const kazagumoService = new KazagumoService({

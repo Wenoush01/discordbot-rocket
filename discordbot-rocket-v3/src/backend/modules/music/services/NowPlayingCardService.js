@@ -1,6 +1,9 @@
 // This is where the Card lives
 // This module's purpose: build embed + buttons, send/edit the card message, recover if the card message was deleted for whatever reason
 
+//TODO: Extend the Playing card so it shows: Most recently added song: title //This removes the need of replying to the user after adding a song - less clutttering in chat
+//TODO: Right now, the card updates only on player state and track change, but it should also update on queue changes
+//TODO: Playing Card should delete itself after some time of no tracks in the queue.
 import {
   ActionRowBuilder,
   ButtonBuilder,
