@@ -1,9 +1,11 @@
+import AppShell from "./components/layout/AppShell.jsx";
+import HomePage from "./pages/HomePage.jsx";
+
 function App() {
   return (
-    <main>
-      <h1>RocketBot Control Panel</h1>
-      <p>Frontend is running!</p>
-    </main>
+    <AppShell>
+      <HomePage />
+    </AppShell>
   );
 }
 
