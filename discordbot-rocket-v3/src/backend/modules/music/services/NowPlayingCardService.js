@@ -1,7 +1,6 @@
 // This is where the Card lives
 // This module's purpose: build embed + buttons, send/edit the card message, recover if the card message was deleted for whatever reason
 
-//TODO: Playing Card should delete itself after some time of no tracks in the queue.
 //TODO: Add a button next to each track in the "up next" list to remove that specific track from the queue
 //TODO: Add a button next to each track in the "up next" list to play that specific track immediately (using skipTo when it's implemented)
 //TODO: Every update, card should check if its the last message sent in the channel, if not, it should delete itself and create a new one to stay always visible.

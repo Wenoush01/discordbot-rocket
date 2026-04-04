@@ -32,6 +32,15 @@ class MusicInteractionService {
       case "music:skip":
         await this.playbackService.skip(interaction.guildId);
         break;
+      case "music:skipTo":
+        await this.playbackService.skipTo(interaction.guildId, 0);
+        break;
+      case "music:playNow":
+        await this.playbackService.playNow(interaction.guildId, 0);
+        break;
+      case "music:removeFromQueue":
+        await this.playbackService.removeFromQueue(interaction.guildId, 0);
+        break;
       case "music:clear":
         await this.playbackService.clearQueue(interaction.guildId);
         break;
