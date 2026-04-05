@@ -47,14 +47,14 @@ function HomePage() {
     ? "text-yellow-300"
     : error
       ? "text-red-400"
-      : "text-green-400";
+      : "text-[#ca0000]";
 
   return (
     <section className="space-y-6">
-      <Card className="overflow-hidden border-green-500/10 bg-gradient-to-br from-green-500/10 via-white/5 to-transparent shadow-2xl">
+      <Card className="overflow-hidden border-[#ca0000]/20 bg-gradient-to-br from-[#ca0000]/15 via-white/5 to-transparent shadow-2xl">
         <CardContent className="grid gap-8 p-6 md:p-8 lg:grid-cols-[1.5fr_0.9fr]">
           <div>
-            <div className="mb-4 inline-flex items-center rounded-full border border-green-400/20 bg-green-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-green-300">
+            <div className="mb-4 inline-flex items-center rounded-full border border-[#ca0000]/30 bg-[#ca0000]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#ffb3b3]">
               <Sparkles className="mr-2 h-3.5 w-3.5" />
               Rocket Dashboard
             </div>
@@ -105,7 +105,7 @@ function HomePage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/15 text-green-300">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-[#ca0000]/15 text-[#ffb3b3]">
               <Activity className="h-5 w-5" />
             </div>
             <CardDescription>Bot Status</CardDescription>
@@ -157,8 +157,8 @@ function HomePage() {
             <CardTitle>Workspace overview</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-4">
-              <p className="text-sm font-semibold text-green-300">
+            <div className="rounded-2xl border border-[#ca0000]/30 bg-[#ca0000]/10 p-4">
+              <p className="text-sm font-semibold text-[#ffb3b3]">
                 Music Module
               </p>
               <p className="mt-1 text-sm text-gray-200">

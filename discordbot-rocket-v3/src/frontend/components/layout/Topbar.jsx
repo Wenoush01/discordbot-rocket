@@ -7,7 +7,7 @@ function Topbar() {
           <p className="text-sm text-gray-400">Manage your discord bot</p>
         </div>
 
-        <div className="rounded-full border border-green-400/30 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-300">
+        <div className="rounded-full border border-[#ca0000]/30 bg-[#ca0000]/10 px-3 py-1 text-xs font-medium text-[#ffb3b3]">
           Online
         </div>
       </div>

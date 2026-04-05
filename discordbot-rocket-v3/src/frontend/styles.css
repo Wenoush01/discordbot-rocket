@@ -19,7 +19,7 @@ body,
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at top, rgba(29, 185, 84, 0.12), transparent 40%),
+    radial-gradient(circle at top, rgba(202, 0, 0, 0.14), transparent 40%),
     linear-gradient(180deg, #0b0f0d, #111827 100%);
   color: #f9fafb;
 }

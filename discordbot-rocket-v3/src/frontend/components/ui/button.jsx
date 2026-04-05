@@ -2,7 +2,7 @@ import { cn } from "../../lib/utils";
 
 function Button({ className, variant = "default", type = "button", ...props }) {
   const variants = {
-    default: "bg-green-500 text-black hover:bg-green-400",
+    default: "bg-[#ca0000] text-white hover:bg-[#a80000]",
     secondary: "bg-white/10 text-white hover:bg-white/15",
     ghost: "bg-transparent text-gray-300 hover:bg-white/5",
   };
