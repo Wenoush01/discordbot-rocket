@@ -56,3 +56,6 @@ LavaLinkServer/logs/
 
 # Optional local scratch area
 old/
+
+# Custom files to ignore
+discordbot-rocket-v3/src/custom/
