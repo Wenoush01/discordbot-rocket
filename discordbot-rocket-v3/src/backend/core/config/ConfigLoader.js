@@ -23,6 +23,11 @@ class ConfigLoader {
         // For simplicity, we use the same token for both Discord and API auth
         token: optionalString("API_TOKEN", ""),
       },
+      voiceCues: {
+        enabled: parseBoolean("VOICE_CUES_ENABLED", true),
+        joinSources: ["http://127.0.0.1:3000/assets/audio/join-01.mp3"],
+        leaveSources: ["http://127.0.0.1:3000/assets/audio/leave-01.mp3"],
+      },
     };
   }
 }

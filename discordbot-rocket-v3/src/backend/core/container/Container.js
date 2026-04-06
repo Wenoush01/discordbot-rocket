@@ -15,6 +15,7 @@ import NowPlayingCardService from "../../modules/music/services/NowPlayingCardSe
 import NowPlayingSyncService from "../../modules/music/services/NowPlayingSyncService.js";
 import MusicControlValidator from "../../modules/music/services/MusicControlValidator.js";
 import MusicInteractionService from "../../modules/music/services/MusicInteractionService.js";
+import VoiceCueService from "../../modules/music/services/VoiceCueService.js";
 // Server imports
 import createApiServer from "../../interfaces/api/ApiServer.js";
 
@@ -60,12 +61,6 @@ class Container {
     this.register("kazagumoService", kazagumoService);
     kazagumoService.init(); // Initialize Kazagumo and connect to Lavalink
 
-    const voiceService = new VoiceConnectionService({
-      logger,
-      kazagumoService,
-    });
-    this.register("voiceService", voiceService);
-
     const kazagumoAudioProvider = new KazagumoAudioProvider({
       kazagumoService,
       logger,
@@ -78,6 +73,21 @@ class Container {
     });
     this.register("audioSourceResolver", audioSourceResolver);
 
+    // Create a VoiceCueService instance
+    const voiceCueService = new VoiceCueService({
+      logger,
+      kazagumoService,
+      config,
+      audioSourceResolver,
+    });
+    this.register("voiceCueService", voiceCueService);
+
+    const voiceService = new VoiceConnectionService({
+      logger,
+      kazagumoService,
+      voiceCueService,
+    });
+    this.register("voiceService", voiceService);
     // Create a NowPlayingCardService instance
     const nowPlayingCardService = new NowPlayingCardService({
       client: client.getClient(),

@@ -1,7 +1,8 @@
 class VoiceConnectionService {
-  constructor({ logger, kazagumoService }) {
+  constructor({ logger, kazagumoService, voiceCueService }) {
     this.logger = logger;
     this.kazagumo = kazagumoService.getClient();
+    this.voiceCueService = voiceCueService;
     this.sessions = new Map();
   }
 
@@ -21,6 +22,8 @@ class VoiceConnectionService {
         deaf: true,
         volume: 2,
       });
+
+      await this.voiceCueService.playRandomJoinCueIfEligible(guildId);
       return "joined";
     }
 
@@ -37,6 +40,7 @@ class VoiceConnectionService {
     const player = this.kazagumo.players.get(guildId);
 
     if (player) {
+      await this.voiceCueService.playRandomLeaveCueIfEligible(guildId);
       await player.destroy();
     }
 

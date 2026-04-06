@@ -4,9 +4,13 @@ import { createServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
 import createHealthRouter from "../api/routes/health.routes.js";
 import createMusicRouter from "../api/routes/music/music.routes.js";
+import path from "node:path";
 
 function createApiServer({ config, logger, playbackService }) {
   const app = express();
+
+  // Audio Assets API
+  app.use("/assets", express.static(path.resolve("assets")));
 
   app.use(
     cors({
