@@ -1,3 +1,4 @@
+import { request } from "http";
 import Track from "../domain/Track.js";
 
 class PlaybackService {
@@ -186,16 +187,19 @@ class PlaybackService {
   // Currently bots default volume is 2 - that is not intended, should be 100. Needs investigation.
   async setVolume(guildId, volume) {
     const player = this.kazagumo.players.get(guildId);
+    if (volume < 1 || volume > 200) {
+      return interaction.reply({
+        content: "Volume must be between 1 and 200.",
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     if (!player) return false;
     const requestedPercent = Math.max(1, Math.min(100, Number(volume)));
-    const appliedVolume = Math.round(
-      (requestedPercent / 100) * this.defaultVolume,
-    );
 
-    await player.setVolume(appliedVolume);
+    await player.setVolume(requestedPercent);
     player.data?.set?.("volumePercent", requestedPercent);
     this.logger.info(
-      `[PlaybackService] Set volume for guild ${guildId} to ${appliedVolume} (input: ${volume}%)`,
+      `[PlaybackService] Set volume for guild ${guildId} to ${requestedPercent} (input: ${volume}%)`,
     );
     return true;
   }

@@ -40,13 +40,6 @@ export default {
 
     try {
       const volume = interaction.options.getInteger("volume", true);
-      //Validate volume range (1 - 100)
-      if (volume < 1 || volume > 100) {
-        return interaction.reply({
-          content: "Volume must be between 1 and 100.",
-          flags: MessageFlags.Ephemeral,
-        });
-      }
       const setVolume = await playbackService.setVolume(
         interaction.guildId,
         volume,

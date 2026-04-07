@@ -29,7 +29,7 @@ class ConfigLoader {
         leaveSources: ["http://127.0.0.1:3000/assets/audio/leave-01.mp3"],
       },
       music: {
-        defaultVolume: parseNumber("DEFAULT_PLAYER_VOLUME", 10),
+        defaultVolume: parseNumber("DEFAULT_PLAYER_VOLUME", 20),
       },
     };
   }
