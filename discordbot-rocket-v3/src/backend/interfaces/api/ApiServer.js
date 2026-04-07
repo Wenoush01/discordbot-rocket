@@ -6,7 +6,12 @@ import createHealthRouter from "../api/routes/health.routes.js";
 import createMusicRouter from "../api/routes/music/music.routes.js";
 import path from "node:path";
 
-function createApiServer({ config, logger, playbackService }) {
+function createApiServer({
+  config,
+  logger,
+  playbackService,
+  nowPlayingCardService,
+}) {
   const app = express();
 
   // Audio Assets API
@@ -22,7 +27,10 @@ function createApiServer({ config, logger, playbackService }) {
 
   // Register API routes
   app.use("/api", createHealthRouter());
-  app.use("/api/music", createMusicRouter({ playbackService }));
+  app.use(
+    "/api/music",
+    createMusicRouter({ playbackService, nowPlayingCardService }),
+  );
 
   app.use((error, req, res, next) => {
     logger.error(

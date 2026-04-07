@@ -6,6 +6,7 @@ class PlaybackService {
     kazagumoService,
     logger,
     audioSourceResolver,
+    config,
   }) {
     this.voiceConnectionService = voiceService;
     this.kazagumoService = kazagumoService;
@@ -13,6 +14,7 @@ class PlaybackService {
     this.audioSourceResolver = audioSourceResolver;
     this.kazagumo = kazagumoService.getClient();
     this.registerKazagumoEvents();
+    this.defaultVolume = config.music.defaultVolume;
   }
 
   // Be careful to stay domain-focused. AI tried to refactor it to implement NowPlayingCard logic here but that would be a violation of SRP. PlaybackService should only be responsible for controlling playback and queue, not how the UI is updated.
@@ -31,7 +33,7 @@ class PlaybackService {
         voiceId: voiceChannelId,
         textId: undefined,
         deaf: true,
-        volume: 2,
+        volume: this.defaultVolume,
       });
     } else if (player.voiceChannelId !== voiceChannelId) {
       player.setVoiceChannel(voiceChannelId);
@@ -182,15 +184,18 @@ class PlaybackService {
 
   // SetVolume should not directly change the defaultVolume - it should modify it by the input in percentage. Example: defaultVolume is 15, user inputs 50, the resulting volume should be 7.5 (50% of 15). If user inputs 100, the resulting volume should be 15 (100% of 15)
   // Currently bots default volume is 2 - that is not intended, should be 100. Needs investigation.
-  // Similarly to pause, there is a delay of few seconds before the new volume is applied, might be Kazagumo/Lavalink issue. Needs investigation.
   async setVolume(guildId, volume) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
-    const defaultVolume = 100;
-    const newVolume = Math.round((volume / 100) * defaultVolume);
-    player.setVolume(newVolume);
+    const requestedPercent = Math.max(1, Math.min(100, Number(volume)));
+    const appliedVolume = Math.round(
+      (requestedPercent / 100) * this.defaultVolume,
+    );
+
+    await player.setVolume(appliedVolume);
+    player.data?.set?.("volumePercent", requestedPercent);
     this.logger.info(
-      `[PlaybackService] Set volume for guild ${guildId} to ${newVolume} (input: ${volume}%)`,
+      `[PlaybackService] Set volume for guild ${guildId} to ${appliedVolume} (input: ${volume}%)`,
     );
     return true;
   }
@@ -228,18 +233,18 @@ class PlaybackService {
   }
 
   getNowPlaying(guildId) {
-    const player = this.kazagumo.players.get(guildId) ?? null;
-    return player.queue.current ?? null;
+    return this.kazagumo.players.get(guildId)?.queue?.current ?? null;
   }
 
   getQueueSnapshot(guildId) {
     const player = this.kazagumo.players.get(guildId);
-    return player ? [...player.queue] : [];
+    if (!player) return [];
+    return [...player.queue];
   }
 
   getPlaybackSnapshot(guildId) {
-    const player = this.kazagumo.players.get(guildId) ?? null;
-
+    const player = this.kazagumo.players.get(guildId);
+    if (!player) return null;
     return {
       playing: player.playing,
       paused: player.paused,

@@ -1,3 +1,4 @@
+import { getHealth } from "../services/api";
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -19,11 +20,7 @@ function HomePage() {
     async function loadHealth() {
       try {
         setLoading(true);
-        const response = await fetch("http://127.0.0.1:3000/api/health");
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await getHealth();
         setHealth(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err));

@@ -86,6 +86,7 @@ class Container {
       logger,
       kazagumoService,
       voiceCueService,
+      config,
     });
     this.register("voiceService", voiceService);
     // Create a NowPlayingCardService instance
@@ -102,6 +103,7 @@ class Container {
       kazagumoService,
       logger,
       audioSourceResolver,
+      config,
     });
     this.register("playbackService", playbackService);
 
@@ -128,7 +130,12 @@ class Container {
     });
 
     //Initialize API Server and register it
-    const apiServer = createApiServer({ config, logger, playbackService });
+    const apiServer = createApiServer({
+      config,
+      logger,
+      playbackService,
+      nowPlayingCardService,
+    });
     this.register("apiServer", apiServer);
 
     nowPlayingSyncService.init();

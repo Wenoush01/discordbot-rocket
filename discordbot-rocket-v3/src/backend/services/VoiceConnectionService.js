@@ -1,9 +1,10 @@
 class VoiceConnectionService {
-  constructor({ logger, kazagumoService, voiceCueService }) {
+  constructor({ logger, kazagumoService, voiceCueService, config }) {
     this.logger = logger;
     this.kazagumo = kazagumoService.getClient();
     this.voiceCueService = voiceCueService;
     this.sessions = new Map();
+    this.defaultVolume = config.music.defaultVolume;
   }
 
   async joinOrMove(guild, voiceChannel, textChannelId) {
@@ -20,7 +21,7 @@ class VoiceConnectionService {
         voiceId: channelId,
         textId: textChannelId,
         deaf: true,
-        volume: 2,
+        volume: this.defaultVolume,
       });
 
       await this.voiceCueService.playRandomJoinCueIfEligible(guildId);
