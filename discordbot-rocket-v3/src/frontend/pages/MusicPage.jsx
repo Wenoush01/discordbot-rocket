@@ -24,6 +24,7 @@ import {
   Search,
   SkipForward,
   Volume2,
+  Check,
   Trash,
 } from "lucide-react";
 
@@ -71,6 +72,32 @@ function MusicPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
+  const [volumeValue, setVolumeValue] = useState(100);
+
+  const nowPlaying = musicState?.nowPlaying ?? null;
+  const playback = musicState?.state ?? null;
+  const queue = queueResponse?.tracks ?? [];
+
+  const isActive = Boolean(musicState?.active && nowPlaying);
+  const playbackLabel = !musicState?.active
+    ? "Idle"
+    : playback?.paused
+      ? "Paused"
+      : playback?.playing
+        ? "Playing"
+        : "Ready";
+
+  const progressPercent =
+    nowPlaying?.durationMs && playback?.positionMs != null
+      ? Math.min(
+          100,
+          Math.max(0, (playback.positionMs / nowPlaying.durationMs) * 100),
+        )
+      : 0;
+
+  const sourceLabel = nowPlaying?.source
+    ? nowPlaying.source.charAt(0).toUpperCase() + nowPlaying.source.slice(1)
+    : "-";
 
   async function loadMusicData() {
     try {
@@ -108,6 +135,12 @@ function MusicPage() {
 
     return () => clearInterval(intervalId);
   }, [musicState?.active]);
+
+  useEffect(() => {
+    if (typeof playback?.volume === "number") {
+      setVolumeValue(playback.volume);
+    }
+  }, [playback?.volume]);
 
   async function handlePauseResume() {
     try {
@@ -156,30 +189,18 @@ function MusicPage() {
     }
   }
 
-  const nowPlaying = musicState?.nowPlaying ?? null;
-  const playback = musicState?.state ?? null;
-  const queue = queueResponse?.tracks ?? [];
-
-  const isActive = Boolean(musicState?.active && nowPlaying);
-  const playbackLabel = !musicState?.active
-    ? "Idle"
-    : playback?.paused
-      ? "Paused"
-      : playback?.playing
-        ? "Playing"
-        : "Ready";
-
-  const progressPercent =
-    nowPlaying?.durationMs && playback?.positionMs != null
-      ? Math.min(
-          100,
-          Math.max(0, (playback.positionMs / nowPlaying.durationMs) * 100),
-        )
-      : 0;
-
-  const sourceLabel = nowPlaying?.source
-    ? nowPlaying.source.charAt(0).toUpperCase() + nowPlaying.source.slice(1)
-    : "-";
+  async function handleSetVolume(volumeValue) {
+    try {
+      setActionLoading("setVolume");
+      setError("");
+      await setVolume(undefined, volumeValue);
+      await loadMusicData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to set volume");
+    } finally {
+      setActionLoading("");
+    }
+  }
 
   return (
     <section className="space-y-6">
@@ -277,13 +298,33 @@ function MusicPage() {
                     <Repeat className="h-4 w-4" />
                     {playback?.loop ?? "Loop"}
                   </Button>
-                  <Button variant="ghost" className="gap-2">
-                    <Volume2 className="h-4 w-4" />
-                    {playback?.volume ?? "-"}%
+                  <Button>
+                    <Volume2></Volume2>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={volumeValue}
+                      onChange={(e) => setVolumeValue(Number(e.target.value))}
+                      className="w-full accent-[#ca0000]/30"
+                    />
+                    <span>{volumeValue}%</span>
+                    <Button
+                      variant="ghost"
+                      className="h-11 w-11 rounded-full p-0"
+                      onClick={() => handleSetVolume(volumeValue)}
+                    >
+                      <Check />
+                    </Button>
                   </Button>
+
                   <Button
                     variant="secondary"
                     className="h-11 w-11 rounded-full p-0"
+                    onClick={handleClearQueue}
+                    disabled={
+                      !musicState?.active || actionLoading === "clearQueue"
+                    }
                   >
                     <Trash className="h-4 w-4" />
                   </Button>

@@ -115,7 +115,7 @@ function createMusicRouter({ playbackService, nowPlayingCardService }) {
     const { guildId } = req.params;
     const { query } = req.body;
     try {
-      const ok = await playbackService.play(guildId, query);
+      const ok = await playbackService.enqueueAndPlayIfIdle(guildId, query);
       if (!ok) {
         return res.status(404).json({ ok: false, message: "No active player" });
       }
