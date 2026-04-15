@@ -12,10 +12,10 @@ import PlaybackService from "../../modules/music/services/application/PlaybackSe
 import KazagumoService from "../../modules/music/services/infrastructure/KazagumoService.js";
 import KazagumoAudioProvider from "../../modules/music/providers/KazagumoAudioProvider.js";
 import NowPlayingCardService from "../../modules/music/services/discord/NowPlayingCardService.js";
-import NowPlayingSyncService from "../../modules/music/services/NowPlayingSyncService.js";
+import NowPlayingSyncService from "../../modules/music/services/discord/NowPlayingSyncService.js";
 import MusicControlValidator from "../../modules/music/services/discord/MusicControlValidator.js";
 import MusicInteractionService from "../../modules/music/services/discord/MusicInteractionService.js";
-import VoiceCueService from "../../modules/music/services/VoiceCueService.js";
+import VoiceCueService from "../../modules/music/services/application/VoiceCueService.js";
 // Server imports
 import createApiServer from "../../interfaces/api/ApiServer.js";
 
