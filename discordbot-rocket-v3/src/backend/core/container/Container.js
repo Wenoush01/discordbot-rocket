@@ -16,6 +16,7 @@ import NowPlayingCardService from "../../modules/music/services/discord/NowPlayi
 import NowPlayingSyncService from "../../modules/music/services/discord/NowPlayingSyncService.js";
 import MusicControlValidator from "../../modules/music/services/discord/MusicControlValidator.js";
 import MusicInteractionService from "../../modules/music/services/discord/MusicInteractionService.js";
+import QueueInteractionService from "../../modules/music/services/discord/QueueInteractionService.js";
 import VoiceCueService from "../../modules/music/services/application/VoiceCueService.js";
 // Server imports
 import createApiServer from "../../interfaces/api/ApiServer.js";
@@ -128,6 +129,13 @@ class Container {
       logger,
     });
     this.register("musicInteractionService", musicInteractionService);
+
+    // Create a QueueInteractionService instance
+    const queueInteractionService = new QueueInteractionService({
+      queueService,
+      musicControlValidator,
+    });
+    this.register("queueInteractionService", queueInteractionService);
 
     //  Create NowPlayingSyncService instance and call init() once
     const nowPlayingSyncService = new NowPlayingSyncService({

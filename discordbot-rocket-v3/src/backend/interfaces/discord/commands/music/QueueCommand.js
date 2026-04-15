@@ -1,5 +1,11 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { EmbedBuilder, MessageFlags } from "discord.js";
+import {
+  EmbedBuilder,
+  MessageFlags,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from "discord.js";
 
 function formatSeconds(total) {
   const mins = Math.floor(total / 60);
@@ -36,6 +42,7 @@ export default {
 
     const kazagumo = container.get("kazagumoService").getClient();
     const player = kazagumo.players.get(interaction.guildId);
+    const queueService = container.get("queueService");
 
     //No Player - no queue
     if (!player) {
@@ -46,9 +53,14 @@ export default {
     }
 
     const current = player.queue.current ?? null;
-    const allUpcoming = Array.from(player.queue ?? []);
-    const upcoming = allUpcoming.slice(0, 10);
-    const remaining = Math.max(0, allUpcoming.length - upcoming.length);
+    const queueSnapshot = queueService.getQueueSnapshot(interaction.guildId);
+    const upcoming = queueSnapshot.filter((track) => track !== current);
+    const tracksPerPage = 10;
+    const paginatedUpcoming = queueService.getPaginatedQueue(
+      interaction.guildId,
+      1,
+      tracksPerPage,
+    );
 
     if (!current && upcoming.length === 0) {
       return interaction.reply({
@@ -57,22 +69,9 @@ export default {
       });
     }
 
-    const upcomingText =
-      upcoming.length === 0
-        ? "No upcoming tracks"
-        : upcoming
-            .map((track, index) => {
-              const dur = formatSeconds(getTrackDurationSeconds(track));
-              return `**${index + 1}.** ${track.title} (${dur})`;
-            })
-            .join("\n");
-
     const totalDurationSeconds =
       getTrackDurationSeconds(current) +
-      allUpcoming.reduce(
-        (sum, track) => sum + getTrackDurationSeconds(track),
-        0,
-      );
+      upcoming.reduce((sum, track) => sum + getTrackDurationSeconds(track), 0);
 
     const currentDuration = current
       ? formatSeconds(getTrackDurationSeconds(current))
@@ -82,26 +81,60 @@ export default {
       .setTitle("Music Queue")
       .setDescription(
         current
-          ? `**Now Playing:** ${current.title} (${currentDuration})`
-          : "Now Playing: \nNothing",
+          ? `${current.title} \`[${currentDuration}]\``
+          : "No current track",
       )
-      .addFields({
-        name: "Up Next",
-        value: upcomingText,
-      })
+      .setColor(0xca0000)
+      // Paginated Fields for the queue, showing 10 tracks per page
+      .addFields(
+        {
+          name: "Up next",
+          value:
+            paginatedUpcoming.tracks.length === 0
+              ? "No upcoming tracks"
+              : paginatedUpcoming.tracks
+                  .map((track, index) => {
+                    const duration = formatSeconds(
+                      getTrackDurationSeconds(track),
+                    );
+                    return `**${(paginatedUpcoming.currentPage - 1) * tracksPerPage + index + 1}.** ${track.title} \`[${duration}]\``;
+                  })
+                  .join("\n"),
+        },
+        {
+          name: "Total duration",
+          value: formatSeconds(totalDurationSeconds),
+          inline: true,
+        },
+      )
       .setFooter({
-        text: `Total duration: ${formatSeconds(totalDurationSeconds)} ${
-          remaining > 0 ? ` | ... and ${remaining} more` : ""
-        }`,
-      });
+        text: `Page ${paginatedUpcoming.currentPage} of ${paginatedUpcoming.totalPages}`,
+      })
+      .setThumbnail(current?.thumbnail ?? null);
+
+    const components = [];
+    if (paginatedUpcoming.totalPages > 1) {
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`queue:previousPage:${paginatedUpcoming.currentPage}`)
+          .setLabel("Previous")
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId(`queue:nextPage:${paginatedUpcoming.currentPage}`)
+          .setLabel("Next")
+          .setStyle(ButtonStyle.Primary),
+      );
+      components.push(row);
+    }
+
+    await interaction.reply({
+      embeds: [embed],
+      components,
+      flags: MessageFlags.Ephemeral,
+    });
 
     if (current?.thumbnail) {
       embed.setThumbnail(current.thumbnail);
     }
-
-    return interaction.reply({
-      embeds: [embed],
-      flags: MessageFlags.Ephemeral,
-    });
   },
 };

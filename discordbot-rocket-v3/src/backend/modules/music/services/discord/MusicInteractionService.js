@@ -20,8 +20,6 @@ class MusicInteractionService {
       return interaction.reply(validation.reply);
     }
 
-    await interaction.deferUpdate();
-
     switch (interaction.customId) {
       case "music:pause":
         await this.playbackService.pause(interaction.guildId);

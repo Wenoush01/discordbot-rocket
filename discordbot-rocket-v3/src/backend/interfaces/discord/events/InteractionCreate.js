@@ -8,12 +8,17 @@ export default {
       const { container, commandHandler } = context;
 
       if (interaction.isButton()) {
-        if (!interaction.customId?.startsWith("music:")) return;
-
-        const musicInteractionService = container.get(
-          "musicInteractionService",
-        );
-        await musicInteractionService.handleButton(interaction);
+        if (interaction.customId?.startsWith("music:")) {
+          const musicInteractionService = container.get(
+            "musicInteractionService",
+          );
+          await musicInteractionService.handleButton(interaction);
+        } else if (interaction.customId?.startsWith("queue:")) {
+          const queueInteractionService = container.get(
+            "queueInteractionService",
+          );
+          await queueInteractionService.handleButton(interaction);
+        }
         return;
       }
 
