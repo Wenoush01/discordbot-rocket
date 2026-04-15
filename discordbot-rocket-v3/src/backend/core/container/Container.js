@@ -9,6 +9,7 @@ import ConfigLoader from "../config/ConfigLoader.js";
 import VoiceConnectionService from "../../services/VoiceConnectionService.js";
 import AudioSourceResolver from "../../modules/music/services/infrastructure/AudioSourceResolver.js";
 import PlaybackService from "../../modules/music/services/application/PlaybackService.js";
+import QueueService from "../../modules/music/services/application/QueueService.js";
 import KazagumoService from "../../modules/music/services/infrastructure/KazagumoService.js";
 import KazagumoAudioProvider from "../../modules/music/providers/KazagumoAudioProvider.js";
 import NowPlayingCardService from "../../modules/music/services/discord/NowPlayingCardService.js";
@@ -106,6 +107,12 @@ class Container {
       config,
     });
     this.register("playbackService", playbackService);
+
+    // Create a QueueService instance
+    const queueService = new QueueService({
+      kazagumoService,
+    });
+    this.register("queueService", queueService);
 
     // Create a MusicControlValidator instance
     const musicControlValidator = new MusicControlValidator({
