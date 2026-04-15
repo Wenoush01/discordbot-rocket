@@ -1,6 +1,7 @@
 // This module's purpose: parse queue:page:index, queue:remove:index, queue:playNow:index, queue:skipTo:index
 // queue paginations index starts at 1, indexes are calculated based on relative position in the queue page
 import buildQueueMessage from "../shared/QueueEmbedBuilder.js";
+import { MessageFlags } from "discord.js";
 
 class QueueInteractionService {
   constructor({ queueService, musicControlValidator }) {
@@ -14,10 +15,25 @@ class QueueInteractionService {
       return interaction.reply(validation.reply);
     }
 
-    await interaction.deferUpdate();
-
     const [namespace, action, value] = interaction.customId.split(":");
     if (namespace !== "queue") return;
+
+    //Special case - fresh ephemeral queue on "Show Queue" button click from now playing card
+    if (action === "show") {
+      const paginatedQueue = this.queueService.getPaginatedQueue(
+        interaction.guildId,
+        1,
+        10,
+      );
+      const messagePayload = buildQueueMessage(paginatedQueue);
+      return interaction.reply({
+        ...messagePayload,
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    await interaction.deferUpdate();
+
     const currentPage = Number(value || 1);
     let targetPage = currentPage;
 
@@ -28,6 +44,8 @@ class QueueInteractionService {
       case "previousPage":
         targetPage = currentPage - 1;
         break;
+      case "show":
+        if (action) break;
 
       default:
         return;

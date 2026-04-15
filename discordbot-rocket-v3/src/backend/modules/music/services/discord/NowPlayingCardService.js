@@ -242,6 +242,10 @@ class NowPlayingCardService {
         .setCustomId("music:stop")
         .setLabel("Stop")
         .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId("queue:show")
+        .setLabel("Show Queue")
+        .setStyle(ButtonStyle.Secondary),
     );
   }
 }
