@@ -54,20 +54,31 @@ class QueueInteractionService {
     const [namespace, action, value] = interaction.customId.split(":");
     if (namespace !== "queue") return;
 
+    const selectedPosition = Number(interaction.values[0]);
+    const currentPage = Number(value || 1);
+    let targetPage = currentPage;
+
     switch (action) {
-      case "remove":
-        await this.queueService.removeFromQueue(
-          interaction.guildId,
-          Number(value) - 1,
-        );
+      case "page":
+        targetPage = selectedPosition;
         break;
       case "playNow":
-        await this.queueService.playNow(interaction.guildId, Number(value) - 1);
+        await this.queueService.playNow(
+          interaction.guildId,
+          selectedPosition - 1,
+        );
         break;
-      case "skipTo":
-        await this.queueService.skipTo(interaction.guildId, Number(value) - 1);
-        break;
+      default:
+        return;
     }
+
+    const paginatedQueue = this.queueService.getPaginatedQueue(
+      interaction.guildId,
+      targetPage,
+      10,
+    );
+    const messagePayload = buildQueueMessage(paginatedQueue);
+    await interaction.editReply(messagePayload);
   }
 }
 

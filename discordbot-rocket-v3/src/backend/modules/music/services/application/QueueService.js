@@ -50,6 +50,10 @@ class QueueService {
     return this.getPaginatedQueue(guildId, previousPage, pageSize);
   }
 
+  async selectPage(guildId, page, pageSize = 10) {
+    return this.getPaginatedQueue(guildId, page, pageSize);
+  }
+
   async refreshQueue(guildId) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return [];
@@ -57,38 +61,12 @@ class QueueService {
     return [...player.queue];
   }
 
-  //remove a specific track from the queue by index
-  async removeFromQueue(guildId, position) {
-    const player = this.kazagumo.players.get(guildId);
-    if (!player) return false;
-
-    await player.queue.remove(position);
-    return true;
-  }
-
-  //skip to a specific track in the queue, not just the next one. Kazagumo supports it but it needs to be exposed in the API and UI first.
-  async skipTo(guildId, position) {
-    const player = this.kazagumo.players.get(guildId);
-    if (!player) return false;
-
-    // Skip all tracks before the target position
-    for (let i = 0; i < position; i++) {
-      if (player.queue.length > 0) {
-        player.skip();
-      }
-    }
-
-    return true;
-  }
-
   //grab a specific track from the queue and play it immediately while keeping the queue intact
   async playNow(guildId, position) {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
-
-    await player.queue.remove(player.queue[0]);
-    await player.play(position);
-    await player.queue.remove(position);
+    player.play(player.queue[position], { immediately: true });
+    player.queue.splice(position + 1, 1); //remove the track from its original position in the queue since it's now playing
     return true;
   }
 }

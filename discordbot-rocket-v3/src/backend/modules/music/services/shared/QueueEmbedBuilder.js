@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  StringSelectMenuBuilder,
 } from "discord.js";
 
 export default function buildQueueMessage({ items, currentPage, totalPages }) {
@@ -35,30 +36,45 @@ export default function buildQueueMessage({ items, currentPage, totalPages }) {
     })
     .setFooter({ text: `Page ${currentPage} of ${totalPages}` });
 
-  const row = new ActionRowBuilder().addComponents(
+  const buttons = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId(`queue:previousPage:${currentPage}`)
-      .setLabel("Previous")
+      .setLabel("Previous Page")
       .setStyle(ButtonStyle.Primary)
       .setDisabled(currentPage <= 1),
     new ButtonBuilder()
       .setCustomId(`queue:nextPage:${currentPage}`)
-      .setLabel("Next")
+      .setLabel("Next Page")
       .setStyle(ButtonStyle.Primary)
       .setDisabled(currentPage >= totalPages),
-    new ButtonBuilder()
-      .setCustomId(`queue:removeFromQueue:${currentPage}`)
-      .setLabel("Remove")
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId(`queue:playNow:${currentPage}`)
-      .setLabel("Play Now")
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(`queue:skipTo:${currentPage}`)
-      .setLabel("Skip To")
-      .setStyle(ButtonStyle.Secondary),
   );
 
-  return { embeds: [embed], components: totalPages > 1 ? [row] : [] };
+  const pageMenu = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`queue:page:${currentPage}`)
+      .setPlaceholder("Select page")
+      .addOptions(
+        Array.from({ length: totalPages }, (_, index) => ({
+          label: `Page ${index + 1}`,
+          value: `${index + 1}`,
+        })),
+      ),
+  );
+
+  const playNowMenu = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`queue:playNow:${currentPage}`)
+      .setPlaceholder("Select track to play now")
+      .setOptions(
+        items.map(({ track, position }) => ({
+          label: track.title,
+          value: `${position}`,
+        })),
+      ),
+  );
+
+  return {
+    embeds: [embed],
+    components: totalPages > 1 ? [buttons, pageMenu, playNowMenu] : [],
+  };
 }
