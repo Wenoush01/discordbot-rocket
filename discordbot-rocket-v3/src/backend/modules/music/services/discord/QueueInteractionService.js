@@ -13,22 +13,17 @@ class QueueInteractionService {
     this.musicControlValidator = musicControlValidator;
   }
 
-  buildQueueMessage({ tracks, currentPage, totalPages }, currentTrack = null) {
+  buildQueueMessage({ items, currentPage, totalPages }) {
     const embed = new EmbedBuilder()
       .setTitle("Music Queue")
-      .setDescription(
-        currentTrack
-          ? `${currentTrack.title} \`[${currentTrack.duration}]\``
-          : "No current track",
-      )
       .setColor(0xca0000)
       .addFields({
         name: "Up next",
         value:
-          tracks.length === 0
+          items.length === 0
             ? "No upcoming tracks"
-            : tracks
-                .map((track, index) => `**${index + 1}.** ${track.title}`)
+            : items
+                .map(({ track, position }) => `**${position}.** ${track.title}`)
                 .join("\n"),
       })
       .setFooter({ text: `Page ${currentPage} of ${totalPages}` });
@@ -63,19 +58,19 @@ class QueueInteractionService {
     let targetPage = currentPage;
 
     switch (action) {
-      case "queue:remove":
+      case "remove":
         await this.queueService.removeFromQueue(
           interaction.guildId,
           (currentPage - 1) * 10 + index - 1,
         );
         break;
-      case "queue:playNow":
+      case "playNow":
         await this.queueService.playNow(
           interaction.guildId,
           (currentPage - 1) * 10 + index - 1,
         );
         break;
-      case "queue:skipTo":
+      case "skipTo":
         await this.queueService.skipTo(
           interaction.guildId,
           (currentPage - 1) * 10 + index - 1,
@@ -87,6 +82,7 @@ class QueueInteractionService {
       case "previousPage":
         targetPage = currentPage - 1;
         break;
+
       default:
         return;
     }

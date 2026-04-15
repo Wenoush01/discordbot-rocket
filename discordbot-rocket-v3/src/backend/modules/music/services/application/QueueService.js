@@ -16,10 +16,13 @@ class QueueService {
     const safePage = Math.min(Math.max(1, page), totalPages);
 
     const start = (safePage - 1) * pageSize;
-    const tracks = queue.slice(start, start + pageSize);
+    const items = queue.slice(start, start + pageSize).map((track, index) => ({
+      track,
+      position: start + index + 1, // Absolute position in the queue
+    }));
 
     return {
-      tracks,
+      items,
       currentPage: safePage,
       totalPages,
       hasPrev: safePage > 1,

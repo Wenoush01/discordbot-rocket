@@ -90,14 +90,14 @@ export default {
         {
           name: "Up next",
           value:
-            paginatedUpcoming.tracks.length === 0
+            paginatedUpcoming.items.length === 0
               ? "No upcoming tracks"
-              : paginatedUpcoming.tracks
-                  .map((track, index) => {
+              : paginatedUpcoming.items
+                  .map(({ track, position }) => {
                     const duration = formatSeconds(
                       getTrackDurationSeconds(track),
                     );
-                    return `**${(paginatedUpcoming.currentPage - 1) * tracksPerPage + index + 1}.** ${track.title} \`[${duration}]\``;
+                    return `**${position}.** ${track.title} \`[${duration}]\``;
                   })
                   .join("\n"),
         },

@@ -180,7 +180,7 @@ class NowPlayingCardService {
         : " ⏹️ Idle";
 
     const embed = new EmbedBuilder()
-      .setColor(0x1db954)
+      .setColor(0xca0000)
       .setTitle("Now Playing")
       .setDescription(
         current
