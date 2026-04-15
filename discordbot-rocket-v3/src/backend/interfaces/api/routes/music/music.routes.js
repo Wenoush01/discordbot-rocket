@@ -4,7 +4,7 @@ import {
   serializeTrack,
   serializePlaybackState,
   serializeQueue,
-} from "../../../../modules/music/services/MusicSerializer.js";
+} from "../../../../modules/music/services/shared/MusicSerializer.js";
 
 function createMusicRouter({ playbackService, nowPlayingCardService }) {
   const router = Router();

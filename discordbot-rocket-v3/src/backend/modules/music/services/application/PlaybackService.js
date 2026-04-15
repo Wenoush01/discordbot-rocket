@@ -1,5 +1,5 @@
 import { request } from "http";
-import Track from "../domain/Track.js";
+import Track from "../../domain/Track.js";
 
 class PlaybackService {
   constructor({
