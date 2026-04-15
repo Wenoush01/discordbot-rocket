@@ -86,6 +86,7 @@ class QueueService {
     const player = this.kazagumo.players.get(guildId);
     if (!player) return false;
 
+    await player.queue.remove(player.queue[0]);
     await player.play(position);
     await player.queue.remove(position);
     return true;

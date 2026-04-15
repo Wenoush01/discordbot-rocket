@@ -22,6 +22,16 @@ export default {
         return;
       }
 
+      if (interaction.isSelectMenu()) {
+        if (interaction.customId?.startsWith("queue:")) {
+          const queueInteractionService = container.get(
+            "queueInteractionService",
+          );
+          await queueInteractionService.handleSelectMenu(interaction);
+        }
+        return;
+      }
+
       // Check if the interaction is a command
       if (!interaction.isChatInputCommand()) return;
 
